@@ -9,5 +9,11 @@ export default defineConfig({
   },
   server: {
     historyApiFallback: true,
+    https: {
+      key: './localhost+1-key.pem',
+      cert: './localhost+1.pem',
+    },
+    host: 'localhost',
+    port: 3000,
   },
 });

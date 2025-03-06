@@ -18,6 +18,11 @@ exports.handler = async (event, context) => {
         updated_at: new Date().toISOString()
       })
     };
+  } else {
+    return {
+      statusCode: 500,
+      body: JSON.stringify("sorry it had internal error")
+    }
   }
   
   if (path === '/posts' && event.httpMethod === 'GET') {

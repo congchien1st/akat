@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { OpenAI } from 'openai';
 import nodemailer from 'nodemailer';
 import axios from 'axios';
-import { verifyWebhook, processWebhookEvent } from './src/lib/webhookHandler.js';
+// import { verifyWebhook, processWebhookEvent } from './src/lib/webhookHandler.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 

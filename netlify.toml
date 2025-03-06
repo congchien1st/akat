@@ -6,10 +6,23 @@
 [dev]
   command = "npm run dev"
   port = 8888
-  targetPort = 5173
+  targetPort = 3000
   publish = "dist"
   autoLaunch = true
   framework = "#custom"
+
+[[redirects]]
+  from = "/aka"
+  to = "/.netlify/functions/aka-hook"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/exchangeToken"
+  to = "/.netlify/functions/exchangeToken"
+  status = 200
+  force = true
+
 
 [[redirects]]
   from = "/facebook-webhook"
