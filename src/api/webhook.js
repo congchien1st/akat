@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyWebhook, processWebhookEvent } from '../lib/webhookHandler.js';
+// import { verifyWebhook, processWebhookEvent } from '../lib/webhookHandler.js';
 
 const router = express.Router();
 
