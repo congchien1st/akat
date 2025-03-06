@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { Home, Settings, MessageSquare, Bot, BarChart3, Shield, LogOut, Database, Menu, X, DollarSign } from 'lucide-react';
+import { Home, Settings, MessageSquare, Bot, BarChart3, Shield, LogOut, Database, Menu, X, DollarSign, Gamepad2 } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import ConnectionPage from './pages/ConnectionPage';
 import AutomationPage from './pages/AutomationPage';
@@ -11,6 +11,9 @@ import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
 import ViolationAlert from './components/ViolationAlert';
+
+// my custom
+import DropdownK from "./components/DropDownK.tsx";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
@@ -123,6 +126,17 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               </div>
               <span className="font-medium">Quản lý quảng cáo</span>
             </Link>
+
+            <Link
+                to="/custom"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
+                onClick={onClose}
+            >
+              <div className="p-2 rounded-lg bg-yellow-50 border-l-blue-500 group-hover:bg-yellow-100 transition-colors">
+                <Gamepad2 className="w-5 h-5" />
+              </div>
+              <span className="font-medium">Customizing</span>
+            </Link>
           </div>
         </nav>
 
@@ -181,6 +195,7 @@ function App() {
                     <Route path="resources" element={<ResourcePage />} />
                     <Route path="connection" element={<ConnectionPage />} />
                     <Route path="ad-manager" element={<AdManagerPage />} />
+                    <Route path="custom" element={<DropdownK />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </main>
@@ -195,6 +210,7 @@ function App() {
           <Route path="resources" element={<ResourcePage />} />
           <Route path="connection" element={<ConnectionPage />} />
           <Route path="ad-manager" element={<AdManagerPage />} />
+          <Route path="custom" element={<DropdownK />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
