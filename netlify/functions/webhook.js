@@ -1,5 +1,5 @@
 // Netlify serverless function to handle webhook requests
-exports.default = async (event, context) => {
+exports.handler = async (event, context) => {
   // Log the incoming request
   console.log('Webhook request received:', event);
   console.log('Query parameters:', event.queryStringParameters);

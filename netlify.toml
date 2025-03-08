@@ -12,6 +12,12 @@
   framework = "#custom"
 
 [[redirects]]
+  from = "/aka"
+  to = "/.netlify/functions/aka-hook"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/facebook-webhook"
   to = "/.netlify/functions/facebook-webhook"
   status = 200

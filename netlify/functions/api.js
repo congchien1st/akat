@@ -1,5 +1,5 @@
 // Netlify serverless function to handle API requests
-exports.default = async (event, context) => {
+exports.handler = async (event, context) => {
   // Extract the path from the URL
   const path = event.path.replace('/.netlify/functions/api', '');
   
