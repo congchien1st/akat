@@ -1,5 +1,5 @@
 // Netlify serverless function to echo parameters
-exports.handler = async (event, context) => {
+exports.default = async (event, context) => {
   try {
     // Get all query parameters
     const params = event.queryStringParameters || {};

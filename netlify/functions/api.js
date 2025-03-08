@@ -1,5 +1,5 @@
 // Netlify serverless function to handle API requests
-exports.handler = async (event, context) => {
+exports.default = async (event, context) => {
   // Extract the path from the URL
   const path = event.path.replace('/.netlify/functions/api', '');
   
@@ -18,6 +18,11 @@ exports.handler = async (event, context) => {
         updated_at: new Date().toISOString()
       })
     };
+  } else {
+    return {
+      statusCode: 500,
+      body: JSON.stringify("sorry it had internal error")
+    }
   }
   
   if (path === '/posts' && event.httpMethod === 'GET') {

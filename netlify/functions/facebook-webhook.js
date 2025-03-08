@@ -1,5 +1,5 @@
 // Netlify serverless function specifically for Facebook webhook
-exports.handler = async (event, context) => {
+exports.default = async (event, context) => {
   // Log the incoming request
   console.log('Facebook webhook request received:', event);
   console.log('Query parameters:', event.queryStringParameters);
