@@ -18,6 +18,13 @@
   force = true
 
 [[redirects]]
+  from = "/exchangeToken"
+  to = "/.netlify/functions/exchangeToken"
+  status = 200
+  force = true
+
+
+[[redirects]]
   from = "/facebook-webhook"
   to = "/.netlify/functions/facebook-webhook"
   status = 200
