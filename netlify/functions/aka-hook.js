@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import {supabase} from "../../src/lib/supabase.js";
 
 const akaHook = async () => {
     try {
@@ -11,11 +12,12 @@ const akaHook = async () => {
             supabase = createClient(supabaseUrl, supabaseKey);
         }
 
-        const { dataSaved } = await supabase
+
+        const data = await supabase
             .from('facebook_connections')
-            .select('*')
+            .select()
             .eq('page_id', '623567207496127')
-        console.log(dataSaved);
+        console.log('Connections data:', data);
 
 
         return new Response(
