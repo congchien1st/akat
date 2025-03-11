@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, MessageSquare, Share2, Eye, CheckCircle, FileText,
   AlertCircle, Loader2, Facebook, BarChart3, Search, Download,
-  ChevronDown, ArrowUpRight, ArrowDownRight, Plus, X, Calendar
+  ChevronDown, ArrowUpRight, ArrowDownRight, Plus, X, Calendar,
+  Heart
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -14,6 +15,7 @@ interface StatCard {
     value: string;
     positive: boolean;
   };
+  total?: string | number;
   color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow';
 }
 
@@ -28,6 +30,7 @@ interface FacebookPage {
     reach: number;
     responseRate: number;
     posts: number;
+    likes: number;
   };
   status: 'active' | 'inactive';
   avatar?: string;
@@ -35,7 +38,7 @@ interface FacebookPage {
 
 type DateRange = '7' | '30' | '90';
 
-function StatCard({ title, value, icon: Icon, change, color }: StatCard) {
+function StatCard({ title, value, icon: Icon, change, total, color }: StatCard) {
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-600',
     green: 'bg-green-50 text-green-600',
@@ -54,19 +57,28 @@ function StatCard({ title, value, icon: Icon, change, color }: StatCard) {
         <span className="text-sm text-gray-600">{title}</span>
       </div>
       <div className="flex items-end gap-2">
-        <span className="text-2xl font-bold">{value}</span>
-        {change && (
-          <div className={`flex items-center text-sm ${
-            change.positive ? 'text-green-600' : 'text-red-600'
-          }`}>
-            {change.positive ? (
-              <ArrowUpRight className="w-4 h-4" />
-            ) : (
-              <ArrowDownRight className="w-4 h-4" />
+        <div className="flex-1">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold">{value}</span>
+            {title === 'Tổng Người theo dõi' && total && (
+              <span className="text-sm text-gray-500">
+                (Tổng: {total})
+              </span>
             )}
-            {change.value}
           </div>
-        )}
+          {change && (
+            <div className={`flex items-center text-sm mt-1 ${
+              change.positive ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {change.positive ? (
+                <ArrowUpRight className="w-4 h-4" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4" />
+              )}
+              {change.value}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -100,7 +112,17 @@ function FacebookPageCard({ page }: { page: FacebookPage }) {
                   <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
                 )}
               </div>
-              <p className="text-sm text-gray-600 truncate">{page.category}</p>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span>{page.metrics.followers.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Heart className="w-4 h-4" />
+                  <span>{page.metrics.likes.toLocaleString()}</span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">{page.category}</p>
             </div>
           </div>
 
@@ -192,6 +214,7 @@ function ResourcePage() {
         title: 'Tổng Fanpage',
         value: '3',
         icon: Facebook,
+        change: { value: '+1', positive: true },
         color: 'blue'
       },
       {
@@ -199,6 +222,7 @@ function ResourcePage() {
         value: Math.round(411 * multiplier),
         icon: Users,
         change: { value: '+5.2%', positive: true },
+        total: '1.2M',
         color: 'green'
       },
       {
@@ -270,6 +294,7 @@ function ResourcePage() {
         category: conn.facebook_page_details?.[0]?.page_category || 'Unknown',
         metrics: {
           followers: conn.facebook_page_details?.[0]?.follower_count || 0,
+          likes: Math.floor(Math.random() * 10000), // Simulated likes count
           engagement: 124,
           reach: 3452,
           responseRate: 94.8,
@@ -287,6 +312,7 @@ function ResourcePage() {
           category: 'Thời trang',
           metrics: {
             followers: 406,
+            likes: 1250,
             engagement: 124,
             reach: 3452,
             responseRate: 94.8,
