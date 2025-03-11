@@ -23,6 +23,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/postArticleOnFb"
+  to = "/.netlify/functions/post-article-on-fb"
+  status = 200
+  force = true
+
 
 [[redirects]]
   from = "/facebook-webhook"

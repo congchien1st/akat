@@ -1,4 +1,4 @@
-import {createClient} from '@supabase/supabase-js';
+import initSupabase  from './init-supabase.js';
 
 const exchangeToken = async (event) => {
     try {
@@ -71,12 +71,7 @@ const exchangeToken = async (event) => {
          * update pages access token dai han cho cac page tuong ung (dang dung page token ngan han)
          */
         //khoi tao supabase client de query db
-        const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://pmybhyeyienzwgthbfkh.supabase.co';
-        const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBteWJoeWV5aWVuendndGhiZmtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5ODQ2MDAsImV4cCI6MjA1NjU2MDYwMH0.0OKhvJkCUaRmGK1ryttl7yprtltcldjPQ_5xGppxeSs';
-        let supabase;
-        if (supabaseUrl && supabaseKey) {
-            supabase = createClient(supabaseUrl, supabaseKey);
-        }
+        const supabase = initSupabase();
 
         // cap nhat token tren supabase
         const updatePageAccessTokens = async (pageTokens) => {
