@@ -271,58 +271,64 @@ function ResourcePage() {
       setLoading(true);
       setError(null);
 
-      const { data: connections, error: connectionsError } = await supabase
-        .from('facebook_connections')
-        .select(`
-          id,
-          page_id,
-          status,
-          facebook_page_details (
-            page_name,
-            page_category,
-            follower_count,
-            page_avatar_url
-          )
-        `);
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        console.error("can't get user:", error);
+      } else {
+        const { data: connections, error: connectionsError } = await supabase
+            .from("facebook_connections")
+            .select(`
+              id,
+              page_id,
+              status,
+              facebook_page_details (
+                page_name,
+                page_category,
+                follower_count,
+                page_avatar_url
+              )
+            `)
+            .eq("user_id", user.id);
 
-      if (connectionsError) throw connectionsError;
+        if (connectionsError) throw connectionsError;
 
-      const transformedPages: FacebookPage[] = connections?.map(conn => ({
-        id: conn.id,
-        name: conn.facebook_page_details?.[0]?.page_name || 'Unnamed Page',
-        verified: true,
-        category: conn.facebook_page_details?.[0]?.page_category || 'Unknown',
-        metrics: {
-          followers: conn.facebook_page_details?.[0]?.follower_count || 0,
-          likes: Math.floor(Math.random() * 10000), // Simulated likes count
-          engagement: 124,
-          reach: 3452,
-          responseRate: 94.8,
-          posts: 78
-        },
-        status: conn.status === 'connected' ? 'active' : 'inactive',
-        avatar: conn.facebook_page_details?.[0]?.page_avatar_url
-      })) || [];
-
-      if (transformedPages.length === 0) {
-        transformedPages.push({
-          id: 'example',
-          name: 'Thỏ Store',
+        const transformedPages: FacebookPage[] = connections?.map(conn => ({
+          id: conn.id,
+          name: conn.facebook_page_details?.[0]?.page_name || 'Unnamed Page',
           verified: true,
-          category: 'Thời trang',
+          category: conn.facebook_page_details?.[0]?.page_category || 'Unknown',
           metrics: {
-            followers: 406,
-            likes: 1250,
+            followers: conn.facebook_page_details?.[0]?.follower_count || 0,
+            likes: Math.floor(Math.random() * 10000), // Simulated likes count
             engagement: 124,
             reach: 3452,
             responseRate: 94.8,
             posts: 78
           },
-          status: 'active'
-        });
-      }
+          status: conn.status === 'connected' ? 'active' : 'inactive',
+          avatar: conn.facebook_page_details?.[0]?.page_avatar_url
+        })) || [];
 
-      setPages(transformedPages);
+        if (transformedPages.length === 0) {
+          transformedPages.push({
+            id: 'example',
+            name: 'Thỏ Store',
+            verified: true,
+            category: 'Thời trang',
+            metrics: {
+              followers: 406,
+              likes: 1250,
+              engagement: 124,
+              reach: 3452,
+              responseRate: 94.8,
+              posts: 78
+            },
+            status: 'active'
+          });
+        }
+
+        setPages(transformedPages);
+      }
     } catch (err) {
       console.error('Error fetching pages:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch pages');
@@ -335,6 +341,7 @@ function ResourcePage() {
     page.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     page.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  // console.log("testme: "+JSON.stringify(filteredPages));
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
