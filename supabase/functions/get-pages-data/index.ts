@@ -46,9 +46,9 @@ Deno.serve(async (req) => {
     const postRemainData = await postRemainRes.json();
     // console.log(postRemainData.data);
 
-    if (!followersRes.ok || !postsRes.ok) {
+    if (!followersRes.ok || !postsRes.ok || !postRemainData) {
       return new Response(JSON.stringify({
-        error: followersData.error || postsData.error
+        error: followersData.error || postsData.error || postRemainData.error
       }), { status: 400 });
     }
 
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // tong so tiep can (page_impressions_unique), tuong tac(page_post_engagements)
     const metrics = {};
     postRemainData.data.map((item) => {
-      metrics[item.name] = item.values[0].value;
+      metrics[item.name] = item.values[1].value;
     });
     // console.log(metrics);
 
