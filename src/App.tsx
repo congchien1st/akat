@@ -14,6 +14,7 @@ import ViolationAlert from './components/ViolationAlert';
 
 // my custom
 import DropdownK from "./components/DropDownK.tsx";
+import ResourcePageNew from "./pages/ResourcePageNew.tsx";
 // import WebhookK from "./components/WebhookK.tsx";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -205,7 +206,8 @@ function App() {
                   <Routes>
                     <Route index element={<HomePage />} />
                     <Route path="automation" element={<AutomationPage />} />
-                    <Route path="resources" element={<ResourcePage />} />
+                    {/*<Route path="resources" element={<ResourcePage />} />*/}
+                    <Route path="resources" element={<ResourcePageNew />} />
                     <Route path="connection" element={<ConnectionPage />} />
                     <Route path="ad-manager" element={<AdManagerPage />} />
                     <Route path="custom" element={<DropdownK />} />
@@ -221,7 +223,8 @@ function App() {
         }>
           <Route index element={<HomePage />} />
           <Route path="automation" element={<AutomationPage />} />
-          <Route path="resources" element={<ResourcePage />} />
+          {/*<Route path="resources" element={<ResourcePage />} />*/}
+          <Route path="resources" element={<ResourcePageNew />} />
           <Route path="connection" element={<ConnectionPage />} />
           <Route path="ad-manager" element={<AdManagerPage />} />
           <Route path="custom" element={<DropdownK />} />
