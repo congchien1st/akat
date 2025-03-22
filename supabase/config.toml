@@ -1,4 +1,3 @@
-
 [functions.get-pages-data]
 enabled = true
 verify_jwt = true
