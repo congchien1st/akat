@@ -1,85 +1,21 @@
+import {supabase} from "../../src/lib/supabase.js";
+// import fs from 'fs';
+// import path from 'path';
+//
+// const { window } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
+// const $ = jquery(window);
+
 /**
  * Resource Page JavaScript
  * Chuyển đổi từ React sang jQuery, Bootstrap
  */
+// import { createClient } from '@supabase/supabase-js'
+const { createClient } = supabase
 
 $(document).ready(function () {
-    // Simulated API client (replacing Supabase)
-    const api = {
-        async fetchPages() {
-            return new Promise((resolve, reject) => {
-                // Simulate API delay
-                setTimeout(() => {
-                    try {
-                        const mockConnections = fetchDataGraphApi()
-                            .then((data) => {
-                                console.log("Updated mockConnections:" +  data);
-                            });
+    let result;
 
-                        // Simulate successful response from server
-                        // const mockConnections = [
-                        //     {
-                        //         id: 'conn1',
-                        //         page_id: 'page1',
-                        //         status: 'connected',
-                        //         facebook_page_details: [{
-                        //             page_name: 'Thỏ Store',
-                        //             page_category: 'Thời trang',
-                        //             follower_count: 406,
-                        //             page_avatar_url: null
-                        //         }]
-                        //     },
-                        //     {
-                        //         id: 'conn2',
-                        //         page_id: 'page2',
-                        //         status: 'connected',
-                        //         facebook_page_details: [{
-                        //             page_name: 'Coffee House',
-                        //             page_category: 'Đồ uống',
-                        //             follower_count: 823,
-                        //             page_avatar_url: 'https://via.placeholder.com/56'
-                        //         }]
-                        //     },
-                        //     {
-                        //         id: 'conn3',
-                        //         page_id: 'page3',
-                        //         status: 'disconnected',
-                        //         facebook_page_details: [{
-                        //             page_name: 'Tech Shop',
-                        //             page_category: 'Công nghệ',
-                        //             follower_count: 215,
-                        //             page_avatar_url: null
-                        //         }]
-                        //     }
-                        // ];
-
-                        // Transform the data similar to the React component
-                        const transformedPages = mockConnections.map(conn => ({
-                            id: conn.id,
-                            name: conn.facebook_page_details?.[0]?.page_name || 'Unnamed Page',
-                            verified: conn.id !== 'conn3', // Simulate verification status
-                            category: conn.facebook_page_details?.[0]?.page_category || 'Unknown',
-                            metrics: {
-                                followers: conn.facebook_page_details?.[0]?.follower_count || 0,
-                                likes: Math.floor(Math.random() * 10000), // Simulated likes count
-                                engagement: Math.floor(Math.random() * 500),
-                                reach: Math.floor(Math.random() * 10000),
-                                responseRate: 75 + Math.floor(Math.random() * 25),
-                                posts: 20 + Math.floor(Math.random() * 150)
-                            },
-                            status: conn.status === 'connected' ? 'active' : 'inactive',
-                            avatar: conn.facebook_page_details?.[0]?.page_avatar_url
-                        }));
-
-                        resolve(transformedPages);
-                    } catch (error) {
-                        reject(error);
-                    }
-                }, 1500);
-            });
-        }
-    };
-
+    // console.log("API " + JSON.stringify(api));
     // Initialize state
     let dateRange = '30';
     let pages = [];
@@ -95,12 +31,26 @@ $(document).ready(function () {
         setupEventListeners();
     }
 
-    async function fetchDataGraphApi() {
+    async function fetchDataGraphApi(connection_id) {
         try {
-            const response = await fetch("https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/get-pages-data", );
-            const data = await response.json();
-            console.log(data);
-            return data;
+            // console.log("CONNECTION_ID: " + connection_id);
+            // const {data: {session}, error: errorSession} = await supabase.auth.getSession();
+            // console.log("SESSION Here: "+    session.access_token);
+
+            const response =  await fetch('http://127.0.0.1:54321/functions/v1/get-pages-data',{
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlM2SVdWSGdteEhRODFOUWsiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3BteWJoeWV5aWVuendndGhiZmtoLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJlNWJmODA4OC0yZTU0LTQ1MmMtODZjNi1lMjRkZTEyM2U1YTciLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQyODE3MTY4LCJpYXQiOjE3NDI4MTM1NjgsImVtYWlsIjoidGVzdDEyMzRAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InRlc3QxMjM0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaG9uZV9udW1iZXIiOiIwMzU0NDQzMzIyIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiJlNWJmODA4OC0yZTU0LTQ1MmMtODZjNi1lMjRkZTEyM2U1YTcifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc0MTU5NTQ4NH1dLCJzZXNzaW9uX2lkIjoiMGE5ZDdjZTItNzA2Zi00M2NkLWIxYzktMjhiMDIzNzA1MzdmIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.lvhDQGZB9eWsxdA6pgvVh0aH9DLuachtHJ0NCwaYmyw'
+                },
+                body: JSON.stringify({
+                    connection_id: connection_id
+                })
+            });
+
+            const dataInvoke = await response.json();
+            // console.log('data invoke:', dataInvoke);
+            return dataInvoke;
         } catch (error) {
             console.error("Error fetching data:", error);
             return [];
@@ -112,11 +62,32 @@ $(document).ready(function () {
             isLoading = true;
             showLoading(true);
 
+
             // Fetch pages from API
-            pages = await api.fetchPages();
+            // pages = await api.fetchPagesNow();
+            pages = await fetchPagesNow("5562a223-ba4f-463d-9c9c-c30df3fb6dc6");
+            // console.log("pages: " + JSON.stringify(pages));
 
             // Calculate total followers for statistics
-            totalFollowers = pages.reduce((sum, page) => sum + page.metrics.followers, 0);
+            // totalFollowers = pages.reduce((sum, page) => sum + page.metrics.followers, 0);
+            /**
+             * {} la gia tri mac dinh, acc la object tích lũy, item la phan tu hien tai trong mang
+             */
+            pages.reduce((acc, item) => {
+                // Lấy key từ item.id, giá trị là item.name
+                // acc[item.id] = item.name;
+                result = {
+                    id: item.id,
+                    name: item.name,
+                    image_url: item.image_url,
+                    posts: item.posts,
+                    approach: item.approach,
+                    interactions: item.interactions,
+                    follows: item.follows
+                };
+                // return acc;
+            }, {});
+            // console.log(result);
 
             // Render all UI elements
             renderStats();
@@ -126,6 +97,32 @@ $(document).ready(function () {
             console.error('Error fetching pages:', error);
             showError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
             showLoading(false);
+        }
+    }
+    // console.log("RESULT " + result.follows);
+
+    async function fetchPagesNow(connection_id) {
+        try {
+            // Gọi API để lấy data (đã parse JSON)
+            const data = await fetchDataGraphApi(connection_id);
+            // console.log("NEWWW"+data);
+
+            // Biến đổi data => result
+            return data.map(item => ({
+                id: item.id,
+                name: item.name,
+                image_url: item.image_url,
+                posts: item.posts,
+                approach: item.approach,
+                interactions: item.interactions,
+                follows: item.follows
+            }));
+
+            // Trả về result
+            // return result;
+        } catch (error) {
+            console.error("Error fetching pages:", error);
+            return [];
         }
     }
 
@@ -207,43 +204,43 @@ $(document).ready(function () {
         const stats = [
             {
                 title: 'Tổng Fanpage',
-                value: pages.length,
+                // value: pages.length,
                 icon: 'facebook',
                 change: {value: '+1', positive: true},
                 color: 'blue'
             },
             {
                 title: 'Tổng Người theo dõi',
-                value: Math.round(totalFollowers * multiplier),
+                value: result.follows,
                 icon: 'users',
                 change: {value: '+5.2%', positive: true},
-                total: (totalFollowers > 1000) ? (totalFollowers / 1000).toFixed(1) + 'K' : totalFollowers,
+                total: (result.follows > 1000) ? (result.follows / 1000).toFixed(1) + 'K' : result.follows,
                 color: 'green'
             },
             {
                 title: 'Tương tác',
-                value: Math.round(124 * multiplier),
+                value: result.interactions,
                 icon: 'share-nodes',
                 change: {value: '+12.3%', positive: true},
                 color: 'purple'
             },
             {
                 title: 'Tổng tiếp cận',
-                value: Math.round(3452 * multiplier).toLocaleString(),
+                value: result.approach,
                 icon: 'eye',
                 change: {value: '+8.1%', positive: true},
                 color: 'orange'
             },
-            {
-                title: 'Tỷ lệ phản hồi',
-                value: '92.5%',
-                icon: 'message',
-                change: {value: '-2.4%', positive: false},
-                color: 'yellow'
-            },
+            // {
+            //     title: 'Tỷ lệ phản hồi',
+            //     value: '92.5%',
+            //     icon: 'message',
+            //     change: {value: '-2.4%', positive: false},
+            //     color: 'yellow'
+            // },
             {
                 title: 'Tổng bài đăng',
-                value: Math.round(85 * multiplier),
+                value: result.posts,
                 icon: 'file-lines',
                 change: {value: '+15.2%', positive: true},
                 color: 'red'
@@ -283,10 +280,12 @@ $(document).ready(function () {
     }
 
     function renderPages() {
-        const filteredPages = pages.filter(page =>
-            page.name.toLowerCase().includes(searchQuery) ||
-            page.category.toLowerCase().includes(searchQuery)
-        );
+        // const filteredPages = pages.filter(page =>
+        //     page.name.toLowerCase().includes(searchQuery)
+        //     // || page.category.toLowerCase().includes(searchQuery)
+        // );
+        const filteredPages = pages;
+        console.log(JSON.stringify(filteredPages));
 
         if (filteredPages.length === 0 && !isLoading) {
             $('#pagesContainer').hide();
@@ -305,8 +304,8 @@ $(document).ready(function () {
                         <div class="d-flex">
                             <!-- Avatar -->
                             <div class="avatar-container me-3">
-                                ${page.avatar ?
-            `<img src="${page.avatar}" alt="${page.name}" class="page-avatar">` :
+                                ${page.image_url ?
+            `<img src="${page.image_url}" alt="${page.name}" class="page-avatar">` :
             `<div class="default-avatar">
                                         <i class="fab fa-facebook fa-lg"></i>
                                     </div>`
@@ -325,14 +324,10 @@ $(document).ready(function () {
                                 <div class="d-flex align-items-center gap-3 mt-1">
                                     <div class="d-flex align-items-center gap-1 text-secondary small">
                                         <i class="fas fa-users"></i>
-                                        <span>${page.metrics.followers.toLocaleString()}</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-1 text-secondary small">
-                                        <i class="fas fa-heart"></i>
-                                        <span>${page.metrics.likes.toLocaleString()}</span>
-                                    </div>
+                                        <span>${page.follows}</span>
+                               
                                 </div>
-                                <p class="text-secondary small mt-1 mb-0">${page.category}</p>
+<!--                                <p class="text-secondary small mt-1 mb-0">${page.category}</p>-->
                             </div>
                         </div>
                     </div>
@@ -350,7 +345,7 @@ $(document).ready(function () {
                             <i class="fas fa-users"></i>
                         </div>
                         <div>
-                            <div class="metric-value">${page.metrics.followers.toLocaleString()}</div>
+                            <div class="metric-value">${page.follows}</div>
                             <div class="metric-label">followers</div>
                         </div>
                     </div>
@@ -360,7 +355,7 @@ $(document).ready(function () {
                             <i class="fas fa-share-alt"></i>
                         </div>
                         <div>
-                            <div class="metric-value">${page.metrics.engagement.toLocaleString()}</div>
+                            <div class="metric-value">${page.interactions}</div>
                             <div class="metric-label">tương tác</div>
                         </div>
                     </div>
@@ -370,7 +365,7 @@ $(document).ready(function () {
                             <i class="fas fa-eye"></i>
                         </div>
                         <div>
-                            <div class="metric-value">${page.metrics.reach.toLocaleString()}</div>
+                            <div class="metric-value">${page.approach}</div>
                             <div class="metric-label">tiếp cận</div>
                         </div>
                     </div>
@@ -380,7 +375,7 @@ $(document).ready(function () {
                             <i class="fas fa-comment"></i>
                         </div>
                         <div>
-                            <div class="metric-value">${page.metrics.responseRate.toFixed(1)}%</div>
+                            <div class="metric-value">80%...</div>
                             <div class="metric-label">phản hồi</div>
                         </div>
                     </div>
@@ -390,7 +385,7 @@ $(document).ready(function () {
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <div>
-                            <div class="metric-value">${page.metrics.posts}</div>
+                            <div class="metric-value">${page.posts}</div>
                             <div class="metric-label">bài viết</div>
                         </div>
                     </div>
