@@ -13,11 +13,11 @@ Deno.serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("VITE_SUPABASE_URL");
-    const supabaseAnonKey = Deno.env.get("VITE_SUPABASE_SERVICE_ROL_KEY");
-    if (!supabaseUrl || !supabaseAnonKey) {
+    const supabaseRoleKey = Deno.env.get("VITE_SUPABASE_SERVICE_ROL_KEY");
+    if (!supabaseUrl || !supabaseRoleKey) {
       throw new Error("Missing Supabase environment variables");
     }
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl, supabaseRoleKey);
 
     const { data, error } = await supabase
         .from("facebook_connections")
@@ -39,28 +39,30 @@ Deno.serve(async (req) => {
     // Lấy tổng số bài viết trong 28 ngày qua
     const postsCount = await fetchPostsCount(since, today, data.access_token, pageId);
 
-    // lay cac chi so graph api
+    // lấy các chỉ số graph api
+    const nameAndImage = `https://graph.facebook.com/v22.0/${pageId}?fields=name,picture&access_token=${data.access_token}`;
     const followersUrl = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_daily_follows_unique&period=days_28&access_token=${data.access_token}`;
     const postsUrl = `https://graph.facebook.com/v22.0/${pageId}/posts?access_token=${data.access_token}`;
     const postRemain = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=days_28&access_token=${data.access_token}`;
 
-    const [followersRes, postsRes, postRemainRes] = await Promise.all([
+    const [nameImageRes,followersRes, postsRes, postRemainRes] = await Promise.all([
+      fetch(nameAndImage),
       fetch(followersUrl),
       fetch(postsUrl),
       fetch(postRemain)
     ]);
 
+    const nameAndImageData = await nameImageRes.json();
     const followersData = await followersRes.json();
     const postsData = await postsRes.json();
     const postRemainData = await postRemainRes.json();
-    // console.log(postRemainData);
+    // console.log("test "+JSON.stringify(nameAndImageData.picture.data.url));
 
-    if (!followersRes.ok || !postsRes.ok || !postRemainData) {
+    if (!followersRes.ok || !postsRes.ok || !postRemainData || !nameAndImageData) {
       return new Response(JSON.stringify({
-        error: followersData.error || postsData.error
+        error: followersData.error || postsData.error || "some error happened with fetch graph api"
       }), { status: 400 });
     }
-    // console.log("POST REMAIN:"+postRemainData.data);
 
     // tong so tiep can (page_impressions_unique), tuong tac(page_post_engagements => bi trung, 1 user co the tuong tac nhieu lan )
     interface PostRemainItem {
@@ -87,13 +89,15 @@ Deno.serve(async (req) => {
       try {
         // Kiểm tra row trùng tất cả cột
         const { data: existingData, error: existingError } = await supabase
-            .from("facebook_page_insights") // Đổi thành tên bảng của bạn
+            .from("facebook_page_insights")
             .select("*")
             .eq("posts", postsCount)
             .eq("approach", metrics.page_impressions_unique)
             .eq("interactions",  metrics.page_post_engagements)
             .eq("follows", followersData.data[0].values[1].value)
             .eq("connection_id", resConnectionId)
+            .eq("name", nameAndImageData.name)
+            .eq("image_url", nameAndImageData.picture.data.url)
 
         if (existingError) {
           return new Response(JSON.stringify({ error: existingError.message }), {
@@ -109,6 +113,8 @@ Deno.serve(async (req) => {
           const { data: dataInserted, error } = await supabase
               .from("facebook_page_insights")
               .insert({
+                name: nameAndImageData.name,
+                image_url: nameAndImageData.picture.data.url,
                 posts: postsCount,
                 approach: metrics.page_impressions_unique,
                 interactions: metrics.page_post_engagements,
@@ -158,7 +164,6 @@ Deno.serve(async (req) => {
 });
 
 /**
- * Hàm fetchPostsCount:
  * - Gọi Graph API để lấy bài viết của Page theo khoảng thời gian (since, until)
  * - Duyệt phân trang để tính tổng số bài viết
  */
