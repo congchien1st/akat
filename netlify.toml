@@ -12,25 +12,6 @@
   framework = "#custom"
 
 [[redirects]]
-  from = "/aka"
-  to = "/.netlify/functions/aka-hook"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/exchangeToken"
-  to = "/.netlify/functions/exchangeToken"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/postArticleOnFb"
-  to = "/.netlify/functions/post-article-on-fb"
-  status = 200
-  force = true
-
-
-[[redirects]]
   from = "/facebook-webhook"
   to = "/.netlify/functions/facebook-webhook"
   status = 200
