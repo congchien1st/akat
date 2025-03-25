@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
 import ViolationAlert from './components/ViolationAlert';
+import ResourcePageNew from "./pages/ResourcePageNew.tsx";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
@@ -179,7 +180,8 @@ function App() {
                   <Routes>
                     <Route index element={<HomePage />} />
                     <Route path="automation" element={<AutomationPage />} />
-                    <Route path="resources" element={<ResourcePage />} />
+                    {/*<Route path="resources" element={<ResourcePage />} />*/}
+                    <Route path="resources" element={<ResourcePageNew />} />
                     <Route path="connection" element={<ConnectionPage />} />
                     <Route path="ad-manager" element={<AdManagerPage />} />
                     <Route path="*" element={<NotFoundPage />} />
@@ -193,7 +195,8 @@ function App() {
         }>
           <Route index element={<HomePage />} />
           <Route path="automation" element={<AutomationPage />} />
-          <Route path="resources" element={<ResourcePage />} />
+          {/*<Route path="resources" element={<ResourcePage />} />*/}
+          <Route path="resources" element={<ResourcePageNew />} />
           <Route path="connection" element={<ConnectionPage />} />
           <Route path="ad-manager" element={<AdManagerPage />} />
         </Route>
