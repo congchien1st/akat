@@ -2,18 +2,13 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 // Initialize Supabase client
-const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://pmybhyeyienzwgthbfkh.supabase.co';
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBteWJoeWV5aWVuendndGhiZmtoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDk4NDYwMCwiZXhwIjoyMDU2NTYwNjAwfQ.H7te0vAGIZMCqzDHEB4s194mvh_UZCJs8s94moL27Ag';
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Facebook verification token
 const VERIFY_TOKEN = Deno.env.get('FB_VERIFY_TOKEN') || 'akamediaplatfrom9924';
 
-// OpenAI API key (will be used by the PostgreSQL trigger)
-// const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') || '';
-//
-// // Seeding API URL (will be used by the PostgreSQL trigger)
-// const SEEDING_API_URL = Deno.env.get('SEEDING_API_URL') || 'https://platform.omegaa.cloud/api/auto-seed';
 
 serve(async (req: Request) => {
   // CORS headers

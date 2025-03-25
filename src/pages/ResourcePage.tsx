@@ -204,16 +204,10 @@ function ResourcePage() {
   const [showExport, setShowExport] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange>('30');
 
-  const [fanpages, setFanpages] = useState([]);
-  const [count, setCount] = useState(0);
-
-
   // Stats for the dashboard based on date range
   const getStats = (range: DateRange): StatCard[] => {
     // In a real app, these values would be calculated based on the date range
     const multiplier = range === '7' ? 0.7 : range === '90' ? 1.3 : 1;
-
-
 
     return [
       {
@@ -262,61 +256,6 @@ function ResourcePage() {
     ];
   };
 
-  const totalFanpage = async () => {
-    try {
-      const {data: {user}, error} = await supabase.auth.getUser();
-      // console.log("here"+JSON.stringify(user.id));
-      if (!user) {
-        console.error("can't get current user");
-      } else {
-        const {data, error} = await supabase
-            .from("facebook_connections")
-            .select(`
-              id,
-              page_id,
-              status,
-              facebook_page_details (
-                page_name,
-                page_category,
-                follower_count,
-                page_avatar_url
-              )
-            `)
-            .eq("user_id", user.id);
-        // console.log("count data: "+JSON.stringify(data));
-        // let count = 0;
-        // let countPage = await data.map(() => {
-        //   count += 1;
-        // })
-
-        if(error) {
-          console.error("error happen: " + error);
-        }
-
-        const countPage = await data ? data.length : 0;
-
-        setCount(countPage);
-        // setFanpages(fanpages);
-
-        // return { numberPage: countPage, fanpages: data };
-
-
-        // return {
-        //   numberPage: countPage
-        // }
-      }
-    } catch (e) {
-      console.log("some error: " + e);
-    }
-  }
-
-  // useEffect(() => {
-  //   totalFanpage().then(({ numberPage, fanpages }) => {
-  //     setCount(numberPage);
-  //     setFanpages(fanpages);
-  //   });
-  // }, []);
-
   const [stats, setStats] = useState<StatCard[]>(getStats('30'));
 
   useEffect(() => {
@@ -325,7 +264,6 @@ function ResourcePage() {
 
   useEffect(() => {
     fetchPages();
-    totalFanpage();
   }, []);
 
   const fetchPages = async () => {
@@ -333,24 +271,19 @@ function ResourcePage() {
       setLoading(true);
       setError(null);
 
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        console.error("can't get user:", error);
-      } else {
-        const { data: connections, error: connectionsError } = await supabase
-            .from("facebook_connections")
-            .select(`
-              id,
-              page_id,
-              status,
-              facebook_page_details (
-                page_name,
-                page_category,
-                follower_count,
-                page_avatar_url
-              )
-            `)
-            .eq("user_id", user.id);
+      const { data: connections, error: connectionsError } = await supabase
+          .from('facebook_connections')
+          .select(`
+          id,
+          page_id,
+          status,
+          facebook_page_details (
+            page_name,
+            page_category,
+            follower_count,
+            page_avatar_url
+          )
+        `);
 
         if (connectionsError) throw connectionsError;
 
@@ -390,7 +323,6 @@ function ResourcePage() {
         }
 
         setPages(transformedPages);
-      }
     } catch (err) {
       console.error('Error fetching pages:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch pages');
@@ -399,22 +331,11 @@ function ResourcePage() {
     }
   };
 
-  // console.log("PAGES NOW: " + JSON.stringify(pages));
-  // let count = 0;
-  // pages.map((page) => {
-  //   count += 1;
-  // })
-  // console.log("COUNT"count);
-
-
-
   const filteredPages = pages.filter(page =>
     page.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     page.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  // console.log("testme: "+JSON.stringify(filteredPages));
 
-  console.log("COUNTTT " + count);
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -457,8 +378,6 @@ function ResourcePage() {
           <StatCard key={index} {...stat} />
         ))}
       </div>
-
-
 
       {/* Facebook Pages Section */}
       <div className="bg-white rounded-xl border border-gray-100 p-6">
