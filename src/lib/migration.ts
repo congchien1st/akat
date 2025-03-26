@@ -17,7 +17,7 @@ export async function applyMigrations() {
     // Apply RLS policies
     await applyRLSPolicies();
     
-    console.log('Database migrations completed successfully');
+    // console.log('Database migrations completed successfully');
     return { success: true };
   } catch (error) {
     console.error('Error applying migrations:', error);

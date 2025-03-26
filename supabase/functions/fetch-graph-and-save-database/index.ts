@@ -97,7 +97,6 @@ Deno.serve(async (req) => {
             .eq("follows", followersData.data[0].values[1].value)
             .eq("connection_id", resConnectionId)
             .eq("name", nameAndImageData.name)
-            .eq("image_url", nameAndImageData.picture.data.url)
 
         if (existingError) {
           return new Response(JSON.stringify({ error: existingError.message }), {
