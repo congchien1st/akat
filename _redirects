@@ -1,0 +1,10 @@
+# Netlify redirects
+# These redirects are only used in production with Netlify
+
+# Handle API and webhook routes first
+/facebook-webhook  /.netlify/functions/facebook-webhook  200!
+/webhook  /.netlify/functions/webhook  200!
+/api/*    /.netlify/functions/api/:splat  200
+
+# Send all other routes to the SPA
+/*        /index.html                  200
