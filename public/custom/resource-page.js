@@ -32,7 +32,7 @@ $(document).ready(function () {
             const {data, error} = await supabase.auth.getSession();
 
             // http://127.0.0.1:54321/functions/v1/get-pages-data
-            const response = await fetch('https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/get-pages-data', {
+            const response = await fetch('http://127.0.0.1:54321/functions/v1/get-pages-data', {
                 method: "GET",
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ $(document).ready(function () {
                     id: item.id,
                     posts: item.posts,
                     approach: item.approach,
-                    interactions: item.interactions,
+                     interactions: item.interactions,
                     follows: item.follows,
                     name: item.name,
                     image_url: item.image_url

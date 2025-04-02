@@ -4,14 +4,16 @@ import { Home, Settings, MessageSquare, Bot, BarChart3, Shield, LogOut, Database
 import HomePage from './pages/HomePage';
 import ConnectionPage from './pages/ConnectionPage';
 import AutomationPage from './pages/AutomationPage';
-import ResourcePage from './pages/ResourcePage';
+// import ResourcePage from './pages/ResourcePage';
 import AdManagerPage from './pages/AdManagerPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
 import ViolationAlert from './components/ViolationAlert';
-import ResourcePageNew from "./pages/ResourcePageNew.tsx";
+
+// import ResourcePageNew from "./pages/ResourcePageNew.tsx";
+import ResourcePage from './pages/resource/ResourcePage.jsx';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
@@ -180,8 +182,8 @@ function App() {
                   <Routes>
                     <Route index element={<HomePage />} />
                     <Route path="automation" element={<AutomationPage />} />
-                    {/*<Route path="resources" element={<ResourcePage />} />*/}
-                    <Route path="resources" element={<ResourcePageNew />} />
+                    <Route path="resources" element={<ResourcePage />} />
+                    {/*<Route path="resources" element={<ResourcePageNew />} />*/}
                     <Route path="connection" element={<ConnectionPage />} />
                     <Route path="ad-manager" element={<AdManagerPage />} />
                     <Route path="*" element={<NotFoundPage />} />
@@ -195,8 +197,8 @@ function App() {
         }>
           <Route index element={<HomePage />} />
           <Route path="automation" element={<AutomationPage />} />
-          {/*<Route path="resources" element={<ResourcePage />} />*/}
-          <Route path="resources" element={<ResourcePageNew />} />
+          <Route path="resources" element={<ResourcePage />} />
+          {/*<Route path="resources" element={<ResourcePageNew />} />*/}
           <Route path="connection" element={<ConnectionPage />} />
           <Route path="ad-manager" element={<AdManagerPage />} />
         </Route>
