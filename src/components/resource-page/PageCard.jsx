@@ -1,6 +1,9 @@
+// import './PageCard.css'; // .css => apply cho toan bo app (nhu binh thuong)
+import styles from './PageCard.module.css'; // .module.css => chi apply cho component hien tai
+
 function PageCard ({page}) {
     return (
-        <div className="page-card">
+        <div className={styles.pageCard}>
             <img src={page.image_url} alt="akamedia-auto"/>
             <div className="">
                 <p>follows: {page.follows}</p>
@@ -9,6 +12,8 @@ function PageCard ({page}) {
                 <p>so bai viet: {page.posts}</p>
             </div>
         </div>
+
+
     )
 }
 
