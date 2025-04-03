@@ -75,7 +75,7 @@ function ConnectedPages() {
       setLoading(true);
       setError(null);
 
-      console.log('Fetching connected pages...');
+      // console.log('Fetching connected pages...');
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();

@@ -1,8 +1,0 @@
-/*
- các class sẽ được truy cập qua styles.pageCard,
- Các tên class này sẽ được tự động chuyển thành các chuỗi hash độc nhất,
- giúp tránh xung đột với các component khác.
- */
-.pageCard {
-    background-color: thistle;
-}

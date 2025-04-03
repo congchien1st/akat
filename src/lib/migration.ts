@@ -6,7 +6,7 @@ import { supabase } from './supabase';
  */
 export async function applyMigrations() {
   try {
-    console.log('Starting database migrations...');
+    // console.log('Starting database migrations...');
     
     // Create the facebook_connections table
     await createFacebookConnectionsTable();
@@ -30,7 +30,7 @@ export async function applyMigrations() {
 
 async function createFacebookConnectionsTable() {
   try {
-    console.log('Creating facebook_connections table...');
+    // console.log('Creating facebook_connections table...');
     
     // Create the table directly with SQL
     const { error } = await supabase.rpc('run_sql_command', {
