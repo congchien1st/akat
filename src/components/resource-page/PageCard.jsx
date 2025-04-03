@@ -44,11 +44,11 @@ function PageCard ({page}) {
                                     {/*    <span>5,416</span>*/}
                                     {/*</div>*/}
                                 </div>
-                                {/*<p className="text-sm text-gray-500 mt-1">Phim</p></div>*/}
+                                <p className="text-sm text-gray-500 mt-1">{page.category}</p>
                             </div>
                         </div>
                         <div className="sm:ml-auto">
-                            <span className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">Hoạt động</span>
+                            <span className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">{page.status}</span>
                         </div>
                     </div>
 

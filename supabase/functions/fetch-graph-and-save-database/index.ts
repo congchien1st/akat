@@ -44,21 +44,24 @@ Deno.serve(async (req) => {
     const followersUrl = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_daily_follows_unique&period=days_28&access_token=${data.access_token}`;
     const postsUrl = `https://graph.facebook.com/v22.0/${pageId}/posts?access_token=${data.access_token}`;
     const postRemain = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=days_28&access_token=${data.access_token}`;
+    const categoryAndStatusPage = `https://graph.facebook.com/v22.0/${pageId}?fields=category%2Cis_published&access_token=${data.access_token}`
 
-    const [nameImageRes,followersRes, postsRes, postRemainRes] = await Promise.all([
+    const [nameImageRes,followersRes, postsRes, postRemainRes, categoryAndStatusRes] = await Promise.all([
       fetch(nameAndImage),
       fetch(followersUrl),
       fetch(postsUrl),
-      fetch(postRemain)
+      fetch(postRemain),
+      fetch(categoryAndStatusPage)
     ]);
 
     const nameAndImageData = await nameImageRes.json();
     const followersData = await followersRes.json();
     const postsData = await postsRes.json();
     const postRemainData = await postRemainRes.json();
-    // console.log("test "+JSON.stringify(nameAndImageData.picture.data.url));
+    const categoryAndStatusData = await categoryAndStatusRes.json();
+    // console.log("test "+JSON.stringify(categoryAndStatusData));
 
-    if (!followersRes.ok || !postsRes.ok || !postRemainData || !nameAndImageData) {
+    if (!followersRes.ok || !postsRes.ok || !postRemainData || !nameAndImageData || !categoryAndStatusData) {
       return new Response(JSON.stringify({
         error: followersData.error || postsData.error || "some error happened with fetch graph api"
       }), { status: 400 });
@@ -97,6 +100,7 @@ Deno.serve(async (req) => {
             .eq("follows", followersData.data[0].values[1].value)
             .eq("connection_id", resConnectionId)
             .eq("name", nameAndImageData.name)
+            .eq("category", categoryAndStatusData.category)
 
         if (existingError) {
           return new Response(JSON.stringify({ error: existingError.message }), {
@@ -118,7 +122,9 @@ Deno.serve(async (req) => {
                 approach: metrics.page_impressions_unique,
                 interactions: metrics.page_post_engagements,
                 follows: followersData.data[0].values[1].value,
-                connection_id: resConnectionId
+                connection_id: resConnectionId,
+                category: categoryAndStatusData.category,
+                status: categoryAndStatusData.is_published ? "Hoạt động" : "Không hoạt động"
               })
               .select();
           if (error) {

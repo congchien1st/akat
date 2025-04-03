@@ -78,7 +78,7 @@ async function createFacebookConnectionsTable() {
       }
     }
     
-    console.log('facebook_connections table created or already exists');
+    // console.log('facebook_connections table created or already exists');
   } catch (error) {
     console.error('Error in createFacebookConnectionsTable:', error);
     throw error;

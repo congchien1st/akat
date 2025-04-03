@@ -84,6 +84,7 @@ grid section
     align-items: center;
     margin-bottom: 15px;
     color: var(--secondary-text);
+    gap: 10px;
 }
 
 .icon-container {
