@@ -8,7 +8,8 @@ export async function fetchDataGraphApi() {
         const {data, error} = await supabase.auth.getSession();
 
         // http://127.0.0.1:54321/functions/v1/get-pages-data
-        const response = await fetch('http://127.0.0.1:54321/functions/v1/get-pages-data', {
+        // https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/get-pages-data
+        const response = await fetch('https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/get-pages-data', {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
