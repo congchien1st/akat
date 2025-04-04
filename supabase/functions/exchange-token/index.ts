@@ -1,8 +1,3 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "jsr:@supabase/supabase-js@2";
 
@@ -24,8 +19,8 @@ Deno.serve(async (req) => {
             };
         }
 
-        const APP_ID = "1041915191297479";
-        const APP_SECRET = "1de790503c0a9f19ec3cd090d73290b1";
+        const APP_ID =  Deno.env.get("VITE_FACEBOOK_APP_ID");
+        const APP_SECRET =  Deno.env.get("VITE_FACEBOOK_APP_SECRET");
 
         const response = await fetch(
             `https://graph.facebook.com/v22.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${APP_ID}&client_secret=${APP_SECRET}&fb_exchange_token=${shortLivedToken}`,
@@ -80,9 +75,11 @@ Deno.serve(async (req) => {
          * update pages access token dai han cho cac page tuong ung (dang dung page token ngan han)
          */
         //khoi tao supabase client de query db
-        const supabaseUrl = "https://pmybhyeyienzwgthbfkh.supabase.co";
-        const supabaseServiceKey =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBteWJoeWV5aWVuendndGhiZmtoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDk4NDYwMCwiZXhwIjoyMDU2NTYwNjAwfQ.H7te0vAGIZMCqzDHEB4s194mvh_UZCJs8s94moL27Ag";
+        const supabaseUrl =  Deno.env.get("VITE_SUPABASE_URL");
+        const supabaseServiceKey =  Deno.env.get("VITE_SUPABASE_SERVICE_ROL_KEY");
+        if (!supabaseUrl || !supabaseServiceKey) {
+            throw new Error("Missing Supabase environment variables");
+        }
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         // cap nhat token tren supabase
@@ -134,15 +131,3 @@ Deno.serve(async (req) => {
         );
     }
 });
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/exchange-token' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/

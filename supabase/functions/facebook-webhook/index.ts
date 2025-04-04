@@ -9,6 +9,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 // Facebook verification token
 const VERIFY_TOKEN = Deno.env.get('FB_VERIFY_TOKEN') || 'akamediaplatfrom9924';
 
+// OpenAI API key (will be used by the PostgreSQL trigger)
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') || '';
+
+// Seeding API URL (will be used by the PostgreSQL trigger)
+const SEEDING_API_URL = Deno.env.get('SEEDING_API_URL') || 'https://platform.omegaa.cloud/api/auto-seed';
 
 serve(async (req: Request) => {
   // CORS headers
