@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { FacebookPageNameAndImage,FacebookFollowers,FacebookInsights,FacebookPageCategoryStatus } from "./FacebookGraphInterface.ts";
+import FacebookGraphAdapter from "./FacebookGraphAdapter.ts";
 
 Deno.serve(async (req) => {
   try {
@@ -38,34 +40,44 @@ Deno.serve(async (req) => {
 
     // Lấy tổng số bài viết trong 28 ngày qua
     const postsCount = await fetchPostsCount(since, today, data.access_token, pageId);
+    // console.log("count: " + postsCount);
+    // process.exit();
 
     // lấy các chỉ số graph api
     const nameAndImage = `https://graph.facebook.com/v22.0/${pageId}?fields=name,picture&access_token=${data.access_token}`;
     const followersUrl = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_daily_follows_unique&period=days_28&access_token=${data.access_token}`;
-    const postsUrl = `https://graph.facebook.com/v22.0/${pageId}/posts?access_token=${data.access_token}`;
     const postRemain = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=days_28&access_token=${data.access_token}`;
     const categoryAndStatusPage = `https://graph.facebook.com/v22.0/${pageId}?fields=category%2Cis_published&access_token=${data.access_token}`
 
-    const [nameImageRes,followersRes, postsRes, postRemainRes, categoryAndStatusRes] = await Promise.all([
+    const [nameImageRes,followersRes, postRemainRes, categoryAndStatusRes] = await Promise.all([
       fetch(nameAndImage),
       fetch(followersUrl),
-      fetch(postsUrl),
       fetch(postRemain),
       fetch(categoryAndStatusPage)
     ]);
 
     const nameAndImageData = await nameImageRes.json();
     const followersData = await followersRes.json();
-    const postsData = await postsRes.json();
     const postRemainData = await postRemainRes.json();
     const categoryAndStatusData = await categoryAndStatusRes.json();
     // console.log("test "+JSON.stringify(categoryAndStatusData));
 
-    if (!followersRes.ok || !postsRes.ok || !postRemainData || !nameAndImageData || !categoryAndStatusData) {
+    if (!followersRes.ok || !postRemainRes || !nameImageRes || !categoryAndStatusRes) {
       return new Response(JSON.stringify({
-        error: followersData.error || postsData.error || "some error happened with fetch graph api"
+        error: "some error happened with fetch graph api"
       }), { status: 400 });
     }
+
+    /**
+     *  xu ly data response qua class FacebookGraphAdapter
+     *  => de sau nay khi graph api update version moi (response bi thay doi) thi chi can update trong class FacebookGraphAdapter
+     */
+    const firstPageInfo: FacebookPageNameAndImage = FacebookGraphAdapter.transformNameAndImage(nameAndImageData);
+    const secondPageInfo: FacebookFollowers = FacebookGraphAdapter.transformFollowers(followersData);
+    const thirdPageInfo: FacebookInsights = FacebookGraphAdapter.transformPostRemain(postRemainData);
+    const fourthPageInfo: FacebookPageCategoryStatus = FacebookGraphAdapter.transformCategoryAndStatusPage(categoryAndStatusData);
+    // console.log("page info: " + JSON.stringify(thirdPageInfo));
+    // process.exit();
 
     // tong so tiep can (page_impressions_unique), tuong tac(page_post_engagements => bi trung, 1 user co the tuong tac nhieu lan )
     interface PostRemainItem {
@@ -95,12 +107,12 @@ Deno.serve(async (req) => {
             .from("facebook_page_insights")
             .select("*")
             .eq("posts", postsCount)
-            .eq("approach", metrics.page_impressions_unique)
-            .eq("interactions",  metrics.page_post_engagements)
-            .eq("follows", followersData.data[0].values[1].value)
+            .eq("approach", thirdPageInfo.impressions)
+            .eq("interactions", thirdPageInfo.engagements)
+            .eq("follows", secondPageInfo.followersCount)
             .eq("connection_id", resConnectionId)
-            .eq("name", nameAndImageData.name)
-            .eq("category", categoryAndStatusData.category)
+            .eq("name", firstPageInfo.name)
+            .eq("category", fourthPageInfo.category)
 
         if (existingError) {
           return new Response(JSON.stringify({ error: existingError.message }), {
@@ -116,15 +128,15 @@ Deno.serve(async (req) => {
           const { data: dataInserted, error } = await supabase
               .from("facebook_page_insights")
               .insert({
-                name: nameAndImageData.name,
-                image_url: nameAndImageData.picture.data.url,
+                name: firstPageInfo.name,
+                image_url: firstPageInfo.pictureUrl,
                 posts: postsCount,
-                approach: metrics.page_impressions_unique,
-                interactions: metrics.page_post_engagements,
-                follows: followersData.data[0].values[1].value,
+                approach: thirdPageInfo.impressions,
+                interactions: thirdPageInfo.engagements,
+                follows: secondPageInfo.followersCount,
                 connection_id: resConnectionId,
-                category: categoryAndStatusData.category,
-                status: categoryAndStatusData.is_published ? "Hoạt động" : "Không hoạt động"
+                category: fourthPageInfo.category,
+                status: fourthPageInfo.isPublished
               })
               .select();
           if (error) {
@@ -175,7 +187,7 @@ Deno.serve(async (req) => {
 const fetchPostsCount = async (since: number, until: number, token:number, page_id:any): Promise<number> => {
   let totalCount = 0;
   // Graph API endpoint với tham số since và until (timestamp theo giây)
-  let url = `https://graph.facebook.com/v22.0/${page_id}/posts?since=${since}&until=${until}&access_token=${token}`;
+  let url = `https://graph.facebook.com/v22.0/${page_id}/posts?since=${since}&until=${until}&limit=25&access_token=${token}`;
 
   while (url) {
     const response = await fetch(url);
@@ -186,6 +198,7 @@ const fetchPostsCount = async (since: number, until: number, token:number, page_
     }
 
     if (data.data && Array.isArray(data.data)) {
+      // console.log("data: " + data.data);
       totalCount += data.data.length;
     }
 
