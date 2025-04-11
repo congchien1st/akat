@@ -80,7 +80,8 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
           note_product: rawProduct.product.note_product || '',
           image: rawProduct.product.image || '',
           is_published: rawProduct.product.is_published,
-          inserted_at: rawProduct.product.inserted_at
+          inserted_at: rawProduct.product.inserted_at,
+          categories: rawProduct.product.categories || ''
         }, {onConflict: 'id'})
         .select();
 
@@ -91,8 +92,8 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
         .from('product_variations')
         .upsert({
           id: rawProduct.id,
-          product_id: rawProduct.id,
-          variation_id: rawProduct.id,
+          // product_id: rawProduct.id,
+          // variation_id: rawProduct.id,
           barcode: rawProduct.barcode || '',
           display_id: rawProduct.display_id || '',
           is_hidden: rawProduct.is_hidden,
@@ -107,7 +108,9 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
           remain_quantity: rawProduct.remain_quantity || 0,
           weight: rawProduct.weight || 0,
           videos: rawProduct.videos || '',
-          inserted_at: rawProduct.inserted_at
+          inserted_at: rawProduct.inserted_at,
+          image: rawProduct.images || '',
+          wholesale_price: rawProduct.wholesale_price || ''
         }, {onConflict: 'id'});
 
     if (variationError) throw variationError;
@@ -119,7 +122,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     //     const {data: categoryData, error: categoryError} = await supabase
     //         .from('categories')
     //         .upsert({
-    //           id: category.id,
+    //           id: category.category_id,
     //           name: category.name
     //         }, {onConflict: 'id'})
     //         .select();
@@ -131,7 +134,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     //         .from('product_categories')
     //         .upsert({
     //           product_id: rawProduct.product_id,
-    //           category_id: category.id
+    //           category_id: category.category_id
     //         }, {onConflict: ['product_id', 'category_id']});
     //
     //     if (productCategoryError) throw productCategoryError;
@@ -144,8 +147,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
         const { error: warehouseError } = await supabase
             .from('variation_warehouses')
             .upsert({
-              id: `${rawProduct.id}_${warehouse.warehouse_id}`,
-              variation_id: rawProduct.id,
+              id: rawProduct.id,
               warehouse_id: warehouse.warehouse_id,
               actual_remain_quantity: warehouse.actual_remain_quantity || 0,
               batch_position: warehouse.batch_position || 0,
@@ -162,22 +164,22 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     }
 
     // 5. Lưu thông tin sản phẩm tổng hợp (nếu có)
-    // if (rawProduct.composite_products && rawProduct.composite_products.length > 0) {
-    //   for (const composite of rawProduct.composite_products) {
-    //     const { error: compositeError } = await supabase
-    //         .from('composite_products')
-    //         .upsert({
-    //           id: composite.id,
-    //           variation_id: rawProduct.id,
-    //           component_variation_id: composite.component.id,
-    //           component_id: composite.component_id,
-    //           quantity: composite.quantity || 0,
-    //           shop_id: composite.shop_id || 0
-    //         }, { onConflict: 'id' });
-    //
-    //     if (compositeError) throw compositeError;
-    //   }
-    // }
+    if (rawProduct.composite_products && rawProduct.composite_products.length > 0) {
+      for (const composite of rawProduct.composite_products) {
+        const { error: compositeError } = await supabase
+            .from('composite_products')
+            .upsert({
+              id: composite.id,
+              variation_id: rawProduct.id,
+              // component_variation_id: composite.component.id,
+              component_id: composite.component_id,
+              quantity: composite.quantity || 0,
+              shop_id: composite.shop_id || 0
+            }, { onConflict: 'id' });
+
+        if (compositeError) throw compositeError;
+      }
+    }
 
     // 6. Lưu thông tin hình ảnh (nếu có)
     // if (rawProduct.images && rawProduct.images.length > 0) {
@@ -186,8 +188,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     //     const { error: imageError } = await supabase
     //         .from('product_images')
     //         .upsert({
-    //           id: `${rawProduct.id}_${i}`,
-    //           product_variation_id: rawProduct.id,
+    //           id: rawProduct.id,
     //           image_url: image,
     //           display_order: i
     //         }, { onConflict: 'id' });
@@ -203,8 +204,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     //     const { error: priceError } = await supabase
     //         .from('wholesale_prices')
     //         .upsert({
-    //           id: `${rawProduct.id}_${i}`,
-    //           product_variation_id: rawProduct.id,
+    //           id: rawProduct.id,
     //           min_quantity: price.min_quantity || 0,
     //           price: price.price || 0
     //         }, { onConflict: 'id' });
