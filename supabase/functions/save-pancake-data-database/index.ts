@@ -69,9 +69,9 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     }
     const supabase = createClient(supabaseUrl, supabaseRoleKey);
 
-    // 1. Lưu thông tin sản phẩm cơ bản
+    // Lưu thông tin sản phẩm cơ bản
     const {data: productData, error: productError} = await supabase
-        .from('products')
+        .from('poscake_products')
         .upsert({
           id: rawProduct.id,
           product_id: rawProduct.product_id,
@@ -87,13 +87,11 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
 
     if (productError) throw productError;
 
-    // 2. Lưu thông tin biến thể sản phẩm
+    // Lưu thông tin biến thể sản phẩm
     const {error: variationError} = await supabase
-        .from('product_variations')
+        .from('poscake_product_variations')
         .upsert({
           id: rawProduct.id,
-          // product_id: rawProduct.id,
-          // variation_id: rawProduct.id,
           barcode: rawProduct.barcode || '',
           display_id: rawProduct.display_id || '',
           is_hidden: rawProduct.is_hidden,
@@ -115,37 +113,11 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
 
     if (variationError) throw variationError;
 
-    // 3. Lưu thông tin danh mục (nếu có)
-    // if (rawProduct.product.categories && rawProduct.product.categories.length > 0) {
-    //   for (const category of rawProduct.product.categories) {
-    //     // Lưu danh mục
-    //     const {data: categoryData, error: categoryError} = await supabase
-    //         .from('categories')
-    //         .upsert({
-    //           id: category.category_id,
-    //           name: category.name
-    //         }, {onConflict: 'id'})
-    //         .select();
-    //
-    //     if (categoryError) throw categoryError;
-    //
-    //     // Lưu quan hệ sản phẩm - danh mục
-    //     const {error: productCategoryError} = await supabase
-    //         .from('product_categories')
-    //         .upsert({
-    //           product_id: rawProduct.product_id,
-    //           category_id: category.category_id
-    //         }, {onConflict: ['product_id', 'category_id']});
-    //
-    //     if (productCategoryError) throw productCategoryError;
-    //   }
-    // }
-
-    // 4. Lưu thông tin kho (nếu có)
+    // Lưu thông tin kho
     if (rawProduct.variations_warehouses && rawProduct.variations_warehouses.length > 0) {
       for (const warehouse of rawProduct.variations_warehouses) {
         const { error: warehouseError } = await supabase
-            .from('variation_warehouses')
+            .from('poscake_variation_warehouses')
             .upsert({
               id: rawProduct.id,
               warehouse_id: warehouse.warehouse_id,
@@ -163,15 +135,14 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
       }
     }
 
-    // 5. Lưu thông tin sản phẩm tổng hợp (nếu có)
+    // Lưu thông tin sản phẩm tổng hợp
     if (rawProduct.composite_products && rawProduct.composite_products.length > 0) {
       for (const composite of rawProduct.composite_products) {
         const { error: compositeError } = await supabase
-            .from('composite_products')
+            .from('poscake_composite_products')
             .upsert({
               id: composite.id,
               variation_id: rawProduct.id,
-              // component_variation_id: composite.component.id,
               component_id: composite.component_id,
               quantity: composite.quantity || 0,
               shop_id: composite.shop_id || 0
@@ -181,38 +152,6 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
       }
     }
 
-    // 6. Lưu thông tin hình ảnh (nếu có)
-    // if (rawProduct.images && rawProduct.images.length > 0) {
-    //   for (let i = 0; i < rawProduct.images.length; i++) {
-    //     const image = rawProduct.images[i];
-    //     const { error: imageError } = await supabase
-    //         .from('product_images')
-    //         .upsert({
-    //           id: rawProduct.id,
-    //           image_url: image,
-    //           display_order: i
-    //         }, { onConflict: 'id' });
-    //
-    //     if (imageError) throw imageError;
-    //   }
-    // }
-
-    // 7. Lưu thông tin giá bán buôn (nếu có)
-    // if (rawProduct.wholesale_price && rawProduct.wholesale_price.length > 0) {
-    //   for (let i = 0; i < rawProduct.wholesale_price.length; i++) {
-    //     const price = rawProduct.wholesale_price[i];
-    //     const { error: priceError } = await supabase
-    //         .from('wholesale_prices')
-    //         .upsert({
-    //           id: rawProduct.id,
-    //           min_quantity: price.min_quantity || 0,
-    //           price: price.price || 0
-    //         }, { onConflict: 'id' });
-    //
-    //     if (priceError) throw priceError;
-    //   }
-    // }
-
     console.log(`Saved product: ${rawProduct.product.name}`);
   } catch (error) {
     console.error(`Error saving product ${rawProduct.product.name}:`, error);
@@ -220,4 +159,3 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
   }
 }
 
-// Chạy hàm xử lý
