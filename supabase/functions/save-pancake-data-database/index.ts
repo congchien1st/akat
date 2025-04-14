@@ -71,7 +71,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
 
     // Lưu thông tin sản phẩm cơ bản
     const {data: productData, error: productError} = await supabase
-        .from('poscake_products')
+        .from('pancake_products')
         .upsert({
           id: rawProduct.id,
           product_id: rawProduct.product_id,
@@ -89,7 +89,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
 
     // Lưu thông tin biến thể sản phẩm
     const {error: variationError} = await supabase
-        .from('poscake_product_variations')
+        .from('pancake_product_variations')
         .upsert({
           id: rawProduct.id,
           barcode: rawProduct.barcode || '',
@@ -117,10 +117,10 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     if (rawProduct.variations_warehouses && rawProduct.variations_warehouses.length > 0) {
       for (const warehouse of rawProduct.variations_warehouses) {
         const { error: warehouseError } = await supabase
-            .from('poscake_variation_warehouses')
+            .from('pancake_variation_warehouses')
             .upsert({
               id: rawProduct.id,
-              warehouse_id: warehouse.warehouse_id,
+              warehouse_id: warehouse.warehouse_id || '',
               actual_remain_quantity: warehouse.actual_remain_quantity || 0,
               batch_position: warehouse.batch_position || 0,
               pending_quantity: warehouse.pending_quantity || 0,
@@ -139,7 +139,7 @@ async function saveProductData(rawProduct: PancakeRawProduct) {
     if (rawProduct.composite_products && rawProduct.composite_products.length > 0) {
       for (const composite of rawProduct.composite_products) {
         const { error: compositeError } = await supabase
-            .from('poscake_composite_products')
+            .from('pancake_composite_products')
             .upsert({
               id: composite.id,
               variation_id: rawProduct.id,
