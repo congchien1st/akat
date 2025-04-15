@@ -24,8 +24,8 @@ export interface FacebookWebhookSubscription {
  * Generate a random verify token
  */
 export function generateVerifyToken(): string {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
 }
 
 /**
@@ -34,20 +34,20 @@ export function generateVerifyToken(): string {
 export async function saveWebhookConfig(config: WebhookConfig): Promise<WebhookConfig> {
   try {
     const { data, error } = await supabase
-      .from('webhook_configs')
-      .upsert({
-        page_id: config.page_id,
-        verify_token: config.verify_token,
-        webhook_url: config.webhook_url,
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-    
+        .from('webhook_configs')
+        .upsert({
+          page_id: config.page_id,
+          verify_token: config.verify_token,
+          webhook_url: config.webhook_url,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
     if (error) {
       throw error;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error saving webhook config:', error);
@@ -61,18 +61,18 @@ export async function saveWebhookConfig(config: WebhookConfig): Promise<WebhookC
 export async function getWebhookConfig(pageId: string): Promise<WebhookConfig | null> {
   try {
     const { data, error } = await supabase
-      .from('webhook_configs')
-      .select('*')
-      .eq('page_id', pageId)
-      .single();
-    
+        .from('webhook_configs')
+        .select('*')
+        .eq('page_id', pageId)
+        .single();
+
     if (error) {
       if (error.code === 'PGRST116') { // Not found error
         return null;
       }
       throw error;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error getting webhook config:', error);
@@ -85,53 +85,53 @@ export async function getWebhookConfig(pageId: string): Promise<WebhookConfig | 
  * This would require Facebook Graph API access with appropriate permissions
  */
 export async function setupWebhookAutomatically(
-  pageId: string, 
-  accessToken: string, 
-  appId: string,
-  webhookUrl: string,
-  verifyToken: string,
-  fields: string[] = ['feed', 'messages']
+    pageId: string,
+    accessToken: string,
+    appId: string,
+    webhookUrl: string,
+    verifyToken: string,
+    fields: string[] = ['feed', 'messages']
 ): Promise<boolean> {
   try {
     // This is a simplified example - in a real implementation, you would:
     // 1. Create or update webhook subscription using Facebook Graph API
     // 2. Subscribe the page to the webhook
-    
+
     // For demonstration purposes, we'll just save the config locally
     await saveWebhookConfig({
       page_id: pageId,
       verify_token: verifyToken,
       webhook_url: webhookUrl
     });
-    
+
     // Log the action
     await supabase
-      .from('automation_logs')
-      .insert({
-        event_type: 'webhook_setup',
-        payload: {
-          page_id: pageId,
-          app_id: appId,
-          webhook_url: webhookUrl,
-          fields,
-          timestamp: new Date().toISOString()
-        },
-        status: 'success'
-      });
-    
+        .from('automation_logs')
+        .insert({
+          event_type: 'webhook_setup',
+          payload: {
+            page_id: pageId,
+            app_id: appId,
+            webhook_url: webhookUrl,
+            fields,
+            timestamp: new Date().toISOString()
+          },
+          status: 'success'
+        });
+
     return true;
   } catch (error) {
     console.error('Error setting up webhook automatically:', error);
-    
+
     // Log the error
     await supabase
-      .from('error_logs')
-      .insert({
-        error_type: 'webhook_setup',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-        details: { pageId, appId, webhookUrl }
-      });
-    
+        .from('error_logs')
+        .insert({
+          error_type: 'webhook_setup',
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+          details: { pageId, appId, webhookUrl }
+        });
+
     throw error;
   }
 }
@@ -143,40 +143,40 @@ export async function testWebhookConnection(config: WebhookConfig): Promise<bool
   try {
     // In a real implementation, you would send a test event to the webhook
     // and verify that it's received correctly
-    
+
     // For demonstration purposes, we'll just check if the URL is reachable
-    const response = await axios.get(config.webhook_url, { 
+    const response = await axios.get(config.webhook_url, {
       timeout: 5000,
       validateStatus: () => true // Accept any status code
     });
-    
+
     // Log the test result
     await supabase
-      .from('automation_logs')
-      .insert({
-        event_type: 'webhook_test',
-        payload: {
-          page_id: config.page_id,
-          webhook_url: config.webhook_url,
-          status_code: response.status,
-          timestamp: new Date().toISOString()
-        },
-        status: response.status >= 200 && response.status < 300 ? 'success' : 'failed'
-      });
-    
+        .from('automation_logs')
+        .insert({
+          event_type: 'webhook_test',
+          payload: {
+            page_id: config.page_id,
+            webhook_url: config.webhook_url,
+            status_code: response.status,
+            timestamp: new Date().toISOString()
+          },
+          status: response.status >= 200 && response.status < 300 ? 'success' : 'failed'
+        });
+
     return response.status >= 200 && response.status < 300;
   } catch (error) {
     console.error('Error testing webhook connection:', error);
-    
+
     // Log the error
     await supabase
-      .from('error_logs')
-      .insert({
-        error_type: 'webhook_test',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-        details: { config }
-      });
-    
+        .from('error_logs')
+        .insert({
+          error_type: 'webhook_test',
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+          details: { config }
+        });
+
     return false;
   }
 }
@@ -186,13 +186,13 @@ export async function testWebhookConnection(config: WebhookConfig): Promise<bool
  * This would require Facebook Graph API access with appropriate permissions
  */
 export async function getWebhookSubscriptionStatus(
-  appId: string,
-  accessToken: string
+    appId: string,
+    accessToken: string
 ): Promise<FacebookWebhookSubscription[]> {
   try {
     // In a real implementation, you would call the Facebook Graph API
     // to get the current webhook subscriptions
-    
+
     // For demonstration purposes, we'll return a mock response
     return [
       {

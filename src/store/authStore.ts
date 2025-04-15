@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
+import { persist } from 'zustand/middleware';
 
 interface AuthState {
   user: User | null;
@@ -13,79 +14,85 @@ interface AuthState {
   refreshSession: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  session: null,
-  loading: true,
-  setSession: (session) => {
-    set({
-      session,
-      user: session?.user ?? null,
-      loading: false,
-    });
-  },
-  refreshSession: async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      set({ 
-        session,
-        user: session?.user ?? null,
-        loading: false
-      });
-    } catch (error) {
-      console.error('Error refreshing session:', error);
-      set({ 
-        session: null,
-        user: null,
-        loading: false
-      });
-    }
-  },
-  signIn: async (email, password) => {
-    try {
-      set({ loading: true });
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      set({ user: data.user, session: data.session, loading: false });
-    } catch (error) {
-      set({ loading: false });
-      throw error;
-    }
-  },
-  signUp: async (email, password, phone) => {
-    try {
-      set({ loading: true });
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            phone_number: phone
+export const useAuthStore = create(
+    persist<AuthState>(
+        (set) => ({
+          user: null,
+          session: null,
+          loading: true,
+          setSession: (session) => {
+            set({
+              session,
+              user: session?.user ?? null,
+              loading: false,
+            });
           },
-          emailRedirectTo: window.location.origin,
-        }
-      });
-      if (error) throw error;
-      set({ user: data.user, session: data.session, loading: false });
-    } catch (error) {
-      set({ loading: false });
-      throw error;
-    }
-  },
-  signOut: async () => {
-    try {
-      set({ loading: true });
-      await supabase.auth.signOut();
-      set({ user: null, session: null, loading: false });
-    } catch (error) {
-      set({ loading: false });
-      throw error;
-    }
-  },
-}));
+          refreshSession: async () => {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              set({
+                session,
+                user: session?.user ?? null,
+                loading: false
+              });
+            } catch (error) {
+              console.error('Error refreshing session:', error);
+              set({
+                session: null,
+                user: null,
+                loading: false
+              });
+            }
+          },
+          signIn: async (email, password) => {
+            try {
+              set({ loading: true });
+              const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+              });
+              if (error) throw error;
+              set({ user: data.user, session: data.session, loading: false });
+            } catch (error) {
+              set({ loading: false });
+              throw error;
+            }
+          },
+          signUp: async (email, password, phone) => {
+            try {
+              set({ loading: true });
+              const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                  data: {
+                    phone_number: phone
+                  },
+                  emailRedirectTo: window.location.origin,
+                }
+              });
+              if (error) throw error;
+              set({ user: data.user, session: data.session, loading: false });
+            } catch (error) {
+              set({ loading: false });
+              throw error;
+            }
+          },
+          signOut: async () => {
+            try {
+              set({ loading: true });
+              await supabase.auth.signOut();
+              set({ user: null, session: null, loading: false });
+            } catch (error) {
+              set({ loading: false });
+              throw error;
+            }
+          },
+        }), {
+          name: 'auth-storage',
+          skipHydration: true
+        })
+);
 
 // Initialize auth state
 supabase.auth.onAuthStateChange((_event, session) => {

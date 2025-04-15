@@ -78,6 +78,6 @@ export class N8nIntegration {
 
 // Tạo instance mặc định
 export const n8n = new N8nIntegration(
-  import.meta.env.VITE_N8N_URL || 'http://localhost:5678',
-  import.meta.env.VITE_N8N_API_KEY || ''
+    import.meta.env.VITE_N8N_URL || 'http://localhost:5678',
+    import.meta.env.VITE_N8N_API_KEY || ''
 );

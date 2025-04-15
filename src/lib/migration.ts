@@ -6,23 +6,23 @@ import { supabase } from './supabase';
  */
 export async function applyMigrations() {
   try {
-    // console.log('Starting database migrations...');
-    
+    console.log('Starting database migrations...');
+
     // Create the facebook_connections table
     await createFacebookConnectionsTable();
-    
+
     // Create the facebook_page_details table
     await createFacebookPageDetailsTable();
-    
+
     // Apply RLS policies
     await applyRLSPolicies();
-    
-    // console.log('Database migrations completed successfully');
+
+    console.log('Database migrations completed successfully');
     return { success: true };
   } catch (error) {
     console.error('Error applying migrations:', error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Unknown error during migration'
     };
   }
@@ -30,8 +30,8 @@ export async function applyMigrations() {
 
 async function createFacebookConnectionsTable() {
   try {
-    // console.log('Creating facebook_connections table...');
-    
+    console.log('Creating facebook_connections table...');
+
     // Create the table directly with SQL
     const { error } = await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -50,35 +50,35 @@ async function createFacebookConnectionsTable() {
         ALTER TABLE facebook_connections ENABLE ROW LEVEL SECURITY;
       `
     });
-    
+
     if (error) {
       console.error('Error creating facebook_connections table with SQL:', error);
-      
+
       // Fallback method: try to create by inserting a record
       console.log('Trying fallback method for facebook_connections...');
-      
+
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
-      
+
       const { error: insertError } = await supabase
-        .from('facebook_connections')
-        .insert({
-          user_id: user.id,
-          page_id: 'test_page_id',
-          access_token: 'test_token',
-          status: 'disconnected'
-        });
-      
+          .from('facebook_connections')
+          .insert({
+            user_id: user.id,
+            page_id: 'test_page_id',
+            access_token: 'test_token',
+            status: 'disconnected'
+          });
+
       if (insertError && insertError.code !== 'PGRST116') {
         console.error('Error with fallback method:', insertError);
         throw new Error('Failed to create facebook_connections table');
       }
     }
-    
-    // console.log('facebook_connections table created or already exists');
+
+    console.log('facebook_connections table created or already exists');
   } catch (error) {
     console.error('Error in createFacebookConnectionsTable:', error);
     throw error;
@@ -88,7 +88,7 @@ async function createFacebookConnectionsTable() {
 async function createFacebookPageDetailsTable() {
   try {
     console.log('Creating facebook_page_details table...');
-    
+
     // Create the table directly with SQL
     const { error } = await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -107,34 +107,34 @@ async function createFacebookPageDetailsTable() {
         ALTER TABLE facebook_page_details ENABLE ROW LEVEL SECURITY;
       `
     });
-    
+
     if (error) {
       console.error('Error creating facebook_page_details table with SQL:', error);
-      
+
       // Fallback method: try to create by inserting a record
       console.log('Trying fallback method for facebook_page_details...');
-      
+
       // First, get a connection ID
       const { data: connections } = await supabase
-        .from('facebook_connections')
-        .select('id')
-        .limit(1);
-      
+          .from('facebook_connections')
+          .select('id')
+          .limit(1);
+
       if (connections && connections.length > 0) {
         const { error: insertError } = await supabase
-          .from('facebook_page_details')
-          .insert({
-            connection_id: connections[0].id,
-            page_name: 'Test Page'
-          });
-        
+            .from('facebook_page_details')
+            .insert({
+              connection_id: connections[0].id,
+              page_name: 'Test Page'
+            });
+
         if (insertError && insertError.code !== 'PGRST116') {
           console.error('Error with fallback method:', insertError);
           throw new Error('Failed to create facebook_page_details table');
         }
       }
     }
-    
+
     console.log('facebook_page_details table created or already exists');
   } catch (error) {
     console.error('Error in createFacebookPageDetailsTable:', error);
@@ -145,16 +145,16 @@ async function createFacebookPageDetailsTable() {
 async function applyRLSPolicies() {
   try {
     console.log('Applying RLS policies...');
-    
+
     // Drop existing policies to avoid conflicts
     await dropExistingPolicies();
-    
+
     // Create policies for facebook_connections
     await createConnectionPolicies();
-    
+
     // Create policies for facebook_page_details
     await createPageDetailsPolicies();
-    
+
     console.log('RLS policies applied successfully');
   } catch (error) {
     console.error('Error in applyRLSPolicies:', error);
@@ -173,7 +173,7 @@ async function dropExistingPolicies() {
         DROP POLICY IF EXISTS "Users can delete own connections" ON facebook_connections;
       `
     });
-    
+
     // Drop policies for facebook_page_details
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -201,7 +201,7 @@ async function createConnectionPolicies() {
         USING (auth.uid() = user_id);
       `
     });
-    
+
     // Create policy for inserting connections
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -212,7 +212,7 @@ async function createConnectionPolicies() {
         WITH CHECK (auth.uid() = user_id);
       `
     });
-    
+
     // Create policy for updating connections
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -223,7 +223,7 @@ async function createConnectionPolicies() {
         USING (auth.uid() = user_id);
       `
     });
-    
+
     // Create policy for deleting connections
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -243,7 +243,7 @@ async function createConnectionPolicies() {
 async function createPageDetailsPolicies() {
   try {
     // Create very permissive policies for facebook_page_details
-    
+
     // Create policy for reading page details
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -254,7 +254,7 @@ async function createPageDetailsPolicies() {
         USING (true);
       `
     });
-    
+
     // Create policy for inserting page details
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -265,7 +265,7 @@ async function createPageDetailsPolicies() {
         WITH CHECK (true);
       `
     });
-    
+
     // Create policy for updating page details
     await supabase.rpc('run_sql_command', {
       sql_command: `
@@ -276,7 +276,7 @@ async function createPageDetailsPolicies() {
         USING (true);
       `
     });
-    
+
     // Create policy for deleting page details
     await supabase.rpc('run_sql_command', {
       sql_command: `
