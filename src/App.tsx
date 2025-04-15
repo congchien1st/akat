@@ -1,37 +1,20 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import {
-  Home,
-  Settings,
-  MessageSquare,
-  Bot,
-  BarChart3,
-  Shield,
-  LogOut,
-  Database,
-  Menu,
-  X,
-  DollarSign,
-  Layout,
-  ChevronDown, FileCode, FileText,
-} from 'lucide-react';
-import HomePage from './pages/HomePage';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import { Home, Settings, MessageSquare, Bot, BarChart3, Shield, LogOut, Database, Menu, X, Layout, FileCode, Sliders, ChevronDown, FileText } from 'lucide-react';
+import HomePage from "./pages/HomePage.tsx";
+import ContentOverviewPage from "./pages/ContentOverviewPage.tsx";
+import PostManagementPage from "./pages/PostManagementPage.tsx";
 import ConnectionPage from "./pages/ConnectionPage.tsx";
-import AutomationPage from "./pages/AutomationPage.tsx";
-// import ResourcePage from './pages/ResourcePage';
-import AdManagerPage from './pages/AdManagerPage';
+import AutomationDashboardPage from "./pages/AutomationDashboardPage.tsx";
+import AutomationTemplatePage from "./pages/AutomationTemplatePage.tsx";
+import AutomationPage from './pages/AutomationPage.tsx';
+// import ResourcePage from "./pages/ResourcePage.tsx";
+import ResourcePage from './pages/resource/ResourcePage.jsx';
 import LoginPage from "./pages/LoginPage.tsx";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import NotFoundPage from "./pages/NotFoundPage.tsx";
 import { useAuthStore } from "./store/authStore.ts";
 import ViolationAlert from "./components/ViolationAlert.tsx";
-
-import ResourcePage from './pages/resource/ResourcePage.jsx';
-import AutomationDashboardPage from './pages/AutomationDashboardPage.tsx';
-import AutomationTemplatePage from './pages/AutomationTemplatePage.tsx';
-import ContentOverviewPage from './pages/ContentOverviewPage.tsx';
-import PostManagementPage from './pages/PostManagementPage.tsx';
-import {Sliders} from "lucide-react";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
@@ -54,6 +37,8 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
   const signOut = useAuthStore((state) => state.signOut);
   const user = useAuthStore((state) => state.user);
   const [automationOpen, setAutomationOpen] = useState(false);
@@ -61,7 +46,6 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   return (
       <>
-        {/* Mobile overlay */}
         {isOpen && (
             <div
                 className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 lg:hidden transition-opacity duration-300"
@@ -79,9 +63,11 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       `}>
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl shadow-sm">
-                <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-              </div>
+              <img
+                  src="/aka platform.png"
+                  alt="AKA Platform Logo"
+                  className="w-12 h-12 object-contain"
+              />
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 AKA Platform
               </h1>
@@ -96,121 +82,162 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
           <nav className="flex-1 overflow-y-auto p-3">
             <div className="space-y-2">
+              {/* Dashboard */}
               <Link
                   to="/"
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group relative"
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative ${isActive('/')
+                      ? 'bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900 dark:text-blue-300'
+                      : 'hover:bg-gray-50 text-gray-600 dark:hover:bg-gray-800 dark:text-gray-300'
+                  }`}
                   onClick={onClose}
               >
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 group-hover:bg-blue-100 transition-all duration-200 shadow-sm">
+                <div
+                    className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/')
+                        ? 'bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                    }`}
+                >
                   <Home className="w-5 h-5" />
                 </div>
-                <span className="font-medium">Trang chủ</span>
+                <span>Dashboard</span>
               </Link>
-              <div
-                  className="flex flex-col"
-              >
+
+              {/* Automation */}
+              <div className="flex flex-col">
                 <button
                     onClick={() => setAutomationOpen(!automationOpen)}
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group relative"
                 >
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100/50 text-purple-600 group-hover:bg-purple-100 transition-all duration-200 shadow-sm">
-                    <Layout className="w-5 h-5" />
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 group-hover:bg-blue-100 transition-all duration-200 shadow-sm">
+                    <Bot className="w-5 h-5" style={{ color: '#575757' }} />
                   </div>
-                  <span className="font-medium flex-1 text-left">Automation</span>
+                  <span>Automation</span>
                   <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${automationOpen ? 'rotate-180' : ''}`} />
                 </button>
-                <div className={`pl-12 space-y-1 overflow-hidden transition-all duration-200 ${
-                    automationOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+                <div className={`pl-12 space-y-1 overflow-hidden transition-all duration-200 ${automationOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
                 }`}>
                   <Link
                       to="/automation"
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${isActive('/automation') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                      }`}
                       onClick={onClose}
                   >
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 group-hover:bg-blue-100 transition-all duration-200">
+                    <div
+                        className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/automation') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}
+                    >
                       <BarChart3 className="w-4 h-4" />
                     </div>
-                    <span className="font-medium">Tổng quan</span>
+                    <span>Tổng quan</span>
                   </Link>
                   <Link
                       to="/automation/templates"
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${isActive('/automation/templates') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                      }`}
                       onClick={onClose}
                   >
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-50 to-green-100/50 text-green-600 group-hover:bg-green-100 transition-all duration-200">
+                    <div
+                        className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/automation/templates') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}
+                    >
                       <FileCode className="w-4 h-4" />
                     </div>
-                    <span className="font-medium">Template mẫu</span>
+                    <span>Template mẫu</span>
                   </Link>
                   <Link
                       to="/automation/custom"
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${isActive('/automation/custom') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                      }`}
                       onClick={onClose}
                   >
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 group-hover:bg-orange-100 transition-all duration-200">
+                    <div
+                        className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/automation/custom') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}
+                    >
                       <Sliders className="w-4 h-4" />
                     </div>
-                    <span className="font-medium">Tùy chỉnh</span>
+                    <span>Tùy chỉnh</span>
                   </Link>
                 </div>
               </div>
+
+              {/* Quản trị nội dung */}
               <Link
                   to="/moderation"
                   onClick={(e) => {
                     e.preventDefault();
                     setModerationOpen(!moderationOpen);
                   }}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group relative mt-2 cursor-pointer"
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative mt-2 cursor-pointer ${isActive('/moderation') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                  }`}
               >
-                <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100/50 text-yellow-600 group-hover:bg-yellow-100 transition-all duration-200 shadow-sm">
+                <div
+                    className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/moderation') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                    }`}
+                >
                   <Shield className="w-5 h-5" />
                 </div>
-                <span className="font-medium flex-1">Quản trị nội dung</span>
+                <span>Quản trị nội dung</span>
                 <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${moderationOpen ? 'rotate-180' : ''}`} />
               </Link>
-              <div className={`pl-12 space-y-1 overflow-hidden transition-all duration-200 ${
-                  moderationOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+              <div className={`pl-12 space-y-1 overflow-hidden transition-all duration-200 ${moderationOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
               }`}>
                 <Link
                     to="/moderation/overview"
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${isActive('/moderation/overview') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                    }`}
                     onClick={onClose}
                 >
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 group-hover:bg-blue-100 transition-all duration-200">
+                  <div
+                      className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/moderation/overview') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                      }`}
+                  >
                     <BarChart3 className="w-4 h-4" />
                   </div>
-                  <span className="font-medium">Tổng quan</span>
+                  <span>Tổng quan</span>
                 </Link>
                 <Link
                     to="/moderation/posts"
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${isActive('/moderation/posts') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                    }`}
                     onClick={onClose}
                 >
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-green-50 to-green-100/50 text-green-600 group-hover:bg-green-100 transition-all duration-200">
+                  <div
+                      className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/moderation/posts') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                      }`}
+                  >
                     <FileText className="w-4 h-4" />
                   </div>
-                  <span className="font-medium">Quản lý bài đăng</span>
+                  <span>Quản lý bài đăng</span>
                 </Link>
               </div>
               <Link
                   to="/resources"
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group mt-2"
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group mt-2 ${isActive('/resources') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                  }`}
                   onClick={onClose}
               >
-                <div className="p-2 rounded-lg bg-gradient-to-br from-green-50 to-green-100/50 text-green-600 group-hover:bg-green-100 transition-all duration-200 shadow-sm">
+                <div
+                    className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/resources') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                    }`}
+                >
                   <Database className="w-5 h-5" />
                 </div>
-                <span className="font-medium">Quản lý tài nguyên</span>
+                <span>Quản lý tài nguyên</span>
               </Link>
               <Link
                   to="/connection"
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group mt-2"
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group mt-2 ${isActive('/connection') ? 'bg-blue-50 text-blue-600 font-semibold' : 'hover:bg-gray-50'
+                  }`}
                   onClick={onClose}
               >
-                <div className="p-2 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 group-hover:bg-orange-100 transition-all duration-200 shadow-sm">
+                <div
+                    className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${isActive('/connection') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                    }`}
+                >
                   <Settings className="w-5 h-5" />
                 </div>
-                <span className="font-medium">Thiết lập kết nối</span>
+                <span>Thiết lập kết nối</span>
               </Link>
             </div>
           </nav>
@@ -247,7 +274,7 @@ function App() {
               <div className="flex min-h-screen bg-gray-50">
                 <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <div className="flex-1 flex flex-col min-h-screen">
-                  {/* Mobile header */}
+
                   <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b">
                     <button
                         onClick={() => setSidebarOpen(true)}
@@ -261,7 +288,7 @@ function App() {
                         AKA Platform
                       </div>
                     </div>
-                    <div className="w-10" /> {/* Spacer for alignment */}
+                    <div className="w-10" />
                   </div>
                   <main className="flex-1 overflow-x-hidden overflow-y-auto">
                     <Routes>
@@ -269,7 +296,6 @@ function App() {
                       <Route path="automation">
                         <Route index element={<AutomationDashboardPage />} />
                         <Route path="templates" element={<AutomationTemplatePage />} />
-                        {/*<Route path="custom" element={<AutomationCustomPage />} />*/}
                         <Route path="custom" element={<AutomationPage />} />
                       </Route>
                       <Route path="moderation">
@@ -282,7 +308,6 @@ function App() {
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                   </main>
-                  {/* Violation Alert Component */}
                   <ViolationAlert />
                 </div>
               </div>
@@ -292,7 +317,6 @@ function App() {
             <Route path="automation">
               <Route index element={<AutomationDashboardPage />} />
               <Route path="templates" element={<AutomationTemplatePage />} />
-              {/*<Route path="custom" element={<AutomationCustomPage />} />*/}
               <Route path="custom" element={<AutomationPage />} />
             </Route>
             <Route path="moderation">

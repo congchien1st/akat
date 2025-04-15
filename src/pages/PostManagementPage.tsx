@@ -64,7 +64,12 @@ function PostManagementPage() {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as '7' | '30' | '60')}
-            className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm"
+            className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm appearance-none bg-no-repeat bg-right pr-8"
+            style={{
+              backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>')`,
+              backgroundPosition: 'calc(100% - 0.75rem) center',
+              backgroundSize: '1rem',
+            }}
           >
             <option value="7">7 ngày qua</option>
             <option value="30">30 ngày qua</option>

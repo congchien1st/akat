@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, MessageSquare, Shield, Bot, TrendingUp, Users, Bell, DollarSign, Target, ArrowUpRight, ArrowDownRight, Eye, Share2, Facebook, Zap } from 'lucide-react';
-import { supabase } from "../lib/supabase.ts";
+import { BarChart3, MessageSquare, Shield, Bot, MessageCircleHeart, MonitorDotIcon, TrendingUp, Users, Bell, DollarSign, Target, ArrowUpRight, ArrowDownRight, AlertTriangle, Eye, Share2, Facebook, Zap, Triangle, TriangleIcon } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface StatCard {
   icon: React.ElementType;
@@ -67,7 +67,13 @@ function AdPerformanceChart() {
       <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Hiệu suất quảng cáo</h2>
-          <select className="text-sm border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
+          <select className="text-sm border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 w-44 h-10 appearance-none bg-white bg-no-repeat bg-right pr-8"
+                  style={{
+                    backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>')`,
+                    backgroundPosition: 'calc(100% - 0.5rem) center',
+                    backgroundSize: '1rem',
+                  }}
+          >
             <option>7 ngày qua</option>
             <option>30 ngày qua</option>
             <option>3 tháng qua</option>
@@ -79,7 +85,7 @@ function AdPerformanceChart() {
               <DollarSign className="w-4 h-4 text-green-600" />
               <span className="text-sm font-medium">Chi phí</span>
             </div>
-            <p className="text-2xl font-bold">289.5M ₫</p>
+            <p className="text-2xl font-bold">289,5M ₫</p>
             <p className="text-sm text-gray-600 mt-1">+12.5% so với tuần trước</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl">
@@ -87,7 +93,7 @@ function AdPerformanceChart() {
               <Target className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium">CPC trung bình</span>
             </div>
-            <p className="text-2xl font-bold">10.450 ₫</p>
+            <p className="text-2xl font-bold">10,450 ₫</p>
             <p className="text-sm text-gray-600 mt-1">-5.2% so với tuần trước</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl">
@@ -95,8 +101,8 @@ function AdPerformanceChart() {
               <Eye className="w-4 h-4 text-purple-600" />
               <span className="text-sm font-medium">Hiển thị</span>
             </div>
-            <p className="text-2xl font-bold">245.8K</p>
-            <p className="text-sm text-gray-600 mt-1">+18.3% so với tuần trước</p>
+            <p className="text-2xl font-bold">245,8K</p>
+            <p className="text-sm text-gray-600 mt-1">+18,3% so với tuần trước</p>
           </div>
         </div>
         <div className="h-[250px] sm:h-[300px] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
@@ -131,7 +137,7 @@ function ConnectedAccountsSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
-              <DollarSign className="w-5 h-5 text-blue-600" />
+              <MonitorDotIcon className="w-5 h-5 text-blue-600" />
               <h3 className="font-medium">Tài khoản quảng cáo</h3>
             </div>
             <p className="text-3xl font-bold text-gray-900">{accounts.length}</p>
@@ -205,7 +211,7 @@ function HomePage() {
     {
       icon: DollarSign,
       title: "Doanh thu",
-      value: "2.89 Tỷ ₫",
+      value: "2,89 Tỷ ₫",
       description: "Tổng doanh thu tháng này",
       trend: { value: "+12.5%", positive: true },
       color: "green"
@@ -213,7 +219,7 @@ function HomePage() {
     {
       icon: Target,
       title: "Chi phí quảng cáo",
-      value: "289.5M ₫",
+      value: "289,5M ₫",
       description: "Chi phí quảng cáo tháng này",
       trend: { value: "+8.1%", positive: false },
       color: "blue"
@@ -221,15 +227,15 @@ function HomePage() {
     {
       icon: Eye,
       title: "Tiếp cận",
-      value: "2.4M",
+      value: "2,4M",
       description: "Số người tiếp cận",
       trend: { value: "+15.3%", positive: true },
       color: "purple"
     },
     {
-      icon: Share2,
+      icon: MessageCircleHeart,
       title: "Tương tác",
-      value: "89.2K",
+      value: "89,2K",
       description: "Tổng lượt tương tác",
       trend: { value: "+5.7%", positive: true },
       color: "orange"

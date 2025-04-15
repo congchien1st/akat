@@ -25,9 +25,14 @@ function LoginPage() {
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="flex flex-col items-center mb-8">
-              <div className="p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl mb-4">
-                <Bot className="w-10 h-10 text-blue-600" />
-              </div>
+              {/*<div className="p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl mb-4">*/}
+              {/*  <Bot className="w-10 h-10 text-blue-600" />*/}
+              {/*</div>*/}
+              <img
+                  src="/aka platform.png"
+                  alt="AKA Platform Logo"
+                  className="w-10 h-10 object-contain"
+              />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 AKA Platform
               </h1>

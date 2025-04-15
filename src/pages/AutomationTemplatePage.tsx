@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, Shield, MessageSquare, Search, Plus, ChevronRight, ChevronDown, Zap, X } from 'lucide-react';
+import { Bot, Shield, MessageSquare, Search, Plus, ChevronRight, ChevronDown, Zap, X, ActivitySquare  } from 'lucide-react';
 import ContentModerationPage from './ContentModerationPage';
 
 function AutomationTemplatePage() {
@@ -32,7 +32,7 @@ function AutomationTemplatePage() {
       category: 'ads',
       popular: true,
       steps: 3,
-      icon: <Bot className="text-green-500" />
+      icon: <ActivitySquare className="text-blue-500" />
     },
     {
       id: 3,
@@ -41,7 +41,7 @@ function AutomationTemplatePage() {
       category: 'standards',
       popular: true,
       steps: 4,
-      icon: <Shield className="text-yellow-500" />
+      icon: <Shield className="text-blue-500" />
     },
     {
       id: 4,
@@ -50,7 +50,7 @@ function AutomationTemplatePage() {
       category: 'message',
       popular: true,
       steps: 3,
-      icon: <MessageSquare className="text-purple-500" />
+      icon: <MessageSquare className="text-blue-500" />
     }
   ];
   

@@ -3,7 +3,8 @@ import {
   Users, MessageSquare, Share2, Eye, CheckCircle, FileText,
   AlertCircle, Loader2, Facebook, BarChart3, Search, Download,
   ChevronDown, ArrowUpRight, ArrowDownRight, Plus, X, Calendar,
-  Heart
+  Heart,
+  MessageCircleHeart
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -60,7 +61,7 @@ function StatCard({ title, value, icon: Icon, change, total, color }: StatCard) 
           <div className="flex-1">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold">{value}</span>
-              {title === 'Tổng Người theo dõi' && total && (
+              {title === 'Followers' && total && (
                   <span className="text-sm text-gray-500">
                 (Tổng: {total})
               </span>
@@ -152,7 +153,7 @@ function FacebookPageCard({ page }: { page: FacebookPage }) {
 
             <div className="flex items-center gap-2">
               <div className="p-2 bg-purple-50 rounded-lg">
-                <Share2 className="w-5 h-5 text-purple-500" />
+                <MessageCircleHeart className="w-5 h-5 text-red-500" />
               </div>
               <div>
                 <div className="font-medium">{page.metrics.engagement.toLocaleString()}</div>
@@ -182,7 +183,7 @@ function FacebookPageCard({ page }: { page: FacebookPage }) {
 
             <div className="flex items-center gap-2">
               <div className="p-2 bg-red-50 rounded-lg">
-                <FileText className="w-5 h-5 text-red-500" />
+                <FileText className="w-5 h-5 text-purple-500" />
               </div>
               <div>
                 <div className="font-medium">{page.metrics.posts}</div>
@@ -211,14 +212,14 @@ function ResourcePage() {
 
     return [
       {
-        title: 'Tổng Fanpage',
+        title: 'Facebook Pages',
         value: '3',
         icon: Facebook,
         change: { value: '+1', positive: true },
         color: 'blue'
       },
       {
-        title: 'Tổng Người theo dõi',
+        title: 'Người Theo Dõi',
         value: Math.round(411 * multiplier),
         icon: Users,
         change: { value: '+5.2%', positive: true },
@@ -226,32 +227,32 @@ function ResourcePage() {
         color: 'green'
       },
       {
-        title: 'Tương tác',
+        title: 'Lượt Tương Tác',
         value: Math.round(124 * multiplier),
-        icon: Share2,
+        icon: MessageCircleHeart,
         change: { value: '+12.3%', positive: true },
-        color: 'purple'
+        color: 'red'
       },
       {
-        title: 'Tổng tiếp cận',
+        title: 'Lượt Tiếp Cận',
         value: Math.round(3452 * multiplier).toLocaleString(),
         icon: Eye,
         change: { value: '+8.1%', positive: true },
-        color: 'orange'
+        color: 'green'
       },
       {
-        title: 'Tỷ lệ phản hồi',
+        title: 'Tỷ Lệ Phản Hồi',
         value: '92.5%',
         icon: MessageSquare,
         change: { value: '-2.4%', positive: false },
         color: 'yellow'
       },
       {
-        title: 'Tổng bài đăng',
+        title: 'Tổng Số Bài Đăng',
         value: Math.round(85 * multiplier),
         icon: FileText,
         change: { value: '+15.2%', positive: true },
-        color: 'red'
+        color: 'purple'
       }
     ];
   };
@@ -352,7 +353,7 @@ function ResourcePage() {
                 <select
                     value={dateRange}
                     onChange={(e) => setDateRange(e.target.value as DateRange)}
-                    className="text-sm border-0 focus:ring-0"
+                    className="text-sm border-0 focus:ring-0 w-full bg-transparent"
                 >
                   <option value="7">7 ngày gần nhất</option>
                   <option value="30">30 ngày gần nhất</option>

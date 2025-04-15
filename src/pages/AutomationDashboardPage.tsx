@@ -29,7 +29,7 @@ function AutomationDashboardPage() {
       value: '94.2%',
       change: { value: '+2.4%', positive: true },
       icon: BarChart3,
-      color: 'purple'
+      color: 'green'
     }
   ];
 
