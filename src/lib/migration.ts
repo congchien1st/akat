@@ -6,7 +6,7 @@ import { supabase } from './supabase';
  */
 export async function applyMigrations() {
   try {
-    console.log('Starting database migrations...');
+    // console.log('Starting database migrations...');
 
     // Create the facebook_connections table
     await createFacebookConnectionsTable();
@@ -17,7 +17,7 @@ export async function applyMigrations() {
     // Apply RLS policies
     await applyRLSPolicies();
 
-    console.log('Database migrations completed successfully');
+    // console.log('Database migrations completed successfully');
     return { success: true };
   } catch (error) {
     console.error('Error applying migrations:', error);
@@ -30,7 +30,7 @@ export async function applyMigrations() {
 
 async function createFacebookConnectionsTable() {
   try {
-    console.log('Creating facebook_connections table...');
+    // console.log('Creating facebook_connections table...');
 
     // Create the table directly with SQL
     const { error } = await supabase.rpc('run_sql_command', {
@@ -78,7 +78,7 @@ async function createFacebookConnectionsTable() {
       }
     }
 
-    console.log('facebook_connections table created or already exists');
+    // console.log('facebook_connections table created or already exists');
   } catch (error) {
     console.error('Error in createFacebookConnectionsTable:', error);
     throw error;
@@ -87,7 +87,7 @@ async function createFacebookConnectionsTable() {
 
 async function createFacebookPageDetailsTable() {
   try {
-    console.log('Creating facebook_page_details table...');
+    // console.log('Creating facebook_page_details table...');
 
     // Create the table directly with SQL
     const { error } = await supabase.rpc('run_sql_command', {
@@ -135,7 +135,7 @@ async function createFacebookPageDetailsTable() {
       }
     }
 
-    console.log('facebook_page_details table created or already exists');
+    // console.log('facebook_page_details table created or already exists');
   } catch (error) {
     console.error('Error in createFacebookPageDetailsTable:', error);
     throw error;
@@ -144,7 +144,7 @@ async function createFacebookPageDetailsTable() {
 
 async function applyRLSPolicies() {
   try {
-    console.log('Applying RLS policies...');
+    // console.log('Applying RLS policies...');
 
     // Drop existing policies to avoid conflicts
     await dropExistingPolicies();
@@ -155,7 +155,7 @@ async function applyRLSPolicies() {
     // Create policies for facebook_page_details
     await createPageDetailsPolicies();
 
-    console.log('RLS policies applied successfully');
+    // console.log('RLS policies applied successfully');
   } catch (error) {
     console.error('Error in applyRLSPolicies:', error);
     throw error;
