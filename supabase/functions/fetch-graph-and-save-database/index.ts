@@ -6,12 +6,26 @@ import FacebookGraphAdapter from "./FacebookGraphAdapter.ts";
 Deno.serve(async (req) => {
   try {
     // body request POST
-    const { pageId } = await req.json();
-    if (!pageId) {
-      return new Response(
-          JSON.stringify({ error: "Missing page_id" }),
-          { status: 400 }
-      );
+    // const { pageId } = await req.json();
+    // if (!pageId) {
+    //   return new Response(
+    //       JSON.stringify({ error: "Missing page_id" }),
+    //       { status: 400 }
+    //   );
+    // }
+
+    const allowedOrigins = ["https://localhost:3000", "https://platform.omegaa.cloud"];
+    const origin = req.headers.get("origin") ?? "";
+
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "",
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      'Content-Type': 'application/json',
+    }
+
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', { headers: corsHeaders })
     }
 
     const supabaseUrl = Deno.env.get("VITE_SUPABASE_URL");
@@ -21,147 +35,143 @@ Deno.serve(async (req) => {
     }
     const supabase = createClient(supabaseUrl, supabaseRoleKey);
 
-    const { data, error } = await supabase
+    const token = req.headers.get("Authorization")?.split("Bearer ")[1];
+    const { data: { user } } = await supabase.auth.getUser(token);
+
+    const {data: pageData} = await supabase
         .from("facebook_connections")
-        .select("access_token")
-        .eq("page_id", pageId)
-        .single();
+        .select(`id, page_id, access_token`)
+        .eq("user_id", user.id)
 
-    if (error || !data) {
-      return new Response(JSON.stringify({ error: `Not found access_token for page_id: ${pageId}` }), { status: 404 });
-    }
-    if (!pageId) {
-      return new Response(JSON.stringify({ error: `Not found page_id: ${pageId}` }), { status: 404 });
-    }
-
-    // Tính timestamp: 28 ngày qua
-    const today = Math.floor(Date.now() / 1000);
-    const since = today - 28 * 24 * 60 * 60;
-
-    // Lấy tổng số bài viết trong 28 ngày qua
-    const postsCount = await fetchPostsCount(since, today, data.access_token, pageId);
-    // console.log("count: " + postsCount);
-    // process.exit();
-
-    // lấy các chỉ số graph api
-    const nameAndImage = `https://graph.facebook.com/v22.0/${pageId}?fields=name,picture&access_token=${data.access_token}`;
-    const followersUrl = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_daily_follows_unique&period=days_28&access_token=${data.access_token}`;
-    const postRemain = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=days_28&access_token=${data.access_token}`;
-    const categoryAndStatusPage = `https://graph.facebook.com/v22.0/${pageId}?fields=category%2Cis_published&access_token=${data.access_token}`
-
-    const [nameImageRes,followersRes, postRemainRes, categoryAndStatusRes] = await Promise.all([
-      fetch(nameAndImage),
-      fetch(followersUrl),
-      fetch(postRemain),
-      fetch(categoryAndStatusPage)
-    ]);
-
-    const nameAndImageData = await nameImageRes.json();
-    const followersData = await followersRes.json();
-    const postRemainData = await postRemainRes.json();
-    const categoryAndStatusData = await categoryAndStatusRes.json();
-    // console.log("test "+JSON.stringify(categoryAndStatusData));
-
-    if (!followersRes.ok || !postRemainRes || !nameImageRes || !categoryAndStatusRes) {
-      return new Response(JSON.stringify({
-        error: "some error happened with fetch graph api"
-      }), { status: 400 });
-    }
-
-    /**
-     *  xu ly data response qua class FacebookGraphAdapter
-     *  => de sau nay khi graph api update version moi (response bi thay doi) thi chi can update trong class FacebookGraphAdapter
-     */
-    const firstPageInfo: FacebookPageNameAndImage = FacebookGraphAdapter.transformNameAndImage(nameAndImageData);
-    const secondPageInfo: FacebookFollowers = FacebookGraphAdapter.transformFollowers(followersData);
-    const thirdPageInfo: FacebookInsights = FacebookGraphAdapter.transformPostRemain(postRemainData);
-    const fourthPageInfo: FacebookPageCategoryStatus = FacebookGraphAdapter.transformCategoryAndStatusPage(categoryAndStatusData);
-    // console.log("page info: " + JSON.stringify(thirdPageInfo));
-    // process.exit();
-
-    // tong so tiep can (page_impressions_unique), tuong tac(page_post_engagements => bi trung, 1 user co the tuong tac nhieu lan )
-    interface PostRemainItem {
-      name: string;
-      values: { value: number }[];
-    }
-    // metrics là object: key: string, value: number
-    const metrics: Record<string, number> = {};
-    postRemainData.data.map((item:PostRemainItem) => {
-      metrics[item.name] = item.values[1].value;
-    });
-    // console.log(metrics);
-
-    const {data: myData, error: errorOutScope} = await supabase
-        .from("facebook_connections")
-        .select("id")
-        .eq("page_id", pageId)
 
     let dataOutput = null;
+    pageData.map(async (item) => {
+      const pageId = item.page_id;
+      const accessToken = item.access_token;
 
-    if (myData && myData.length > 0) {
-      const resConnectionId = myData[0].id;
+      // Tính timestamp: 28 ngày qua
+      const today = Math.floor(Date.now() / 1000);
+      const since = today - 28 * 24 * 60 * 60;
 
-      try {
-        // Kiểm tra row trùng tất cả cột
-        const { data: existingData, error: existingError } = await supabase
-            .from("facebook_page_insights")
-            .select("*")
-            .eq("posts", postsCount)
-            .eq("approach", thirdPageInfo.impressions)
-            .eq("interactions", thirdPageInfo.engagements)
-            .eq("follows", secondPageInfo.followersCount)
-            .eq("connection_id", resConnectionId)
-            .eq("name", firstPageInfo.name)
-            .eq("category", fourthPageInfo.category)
+      // Lấy tổng số bài viết trong 28 ngày qua
+      const postsCount = await fetchPostsCount(since, today, accessToken, pageId);
 
-        if (existingError) {
-          return new Response(JSON.stringify({ error: existingError.message }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          });
-        } else if (existingData && existingData.length > 0) {
-          return new Response(
-              JSON.stringify({ message: "Row đã tồn tại (trùng tất cả cột), không insert." }),
-              { status: 200, headers: { "Content-Type": "application/json" } }
-          );
-        } else {
-          const { data: dataInserted, error } = await supabase
-              .from("facebook_page_insights")
-              .insert({
-                name: firstPageInfo.name,
-                image_url: firstPageInfo.pictureUrl,
-                posts: postsCount,
-                approach: thirdPageInfo.impressions,
-                interactions: thirdPageInfo.engagements,
-                follows: secondPageInfo.followersCount,
-                connection_id: resConnectionId,
-                category: fourthPageInfo.category,
-                status: fourthPageInfo.isPublished
-              })
-              .select();
-          if (error) {
-            console.error("Insert error:", error);
-          } else {
-            console.log("Insert success. Data:", dataInserted);
-            dataOutput = dataInserted;
-          }
-        }
-      } catch (error) {
-        console.error("Catch error:", error);
+      // lấy các chỉ số graph api
+      const nameAndImage = `https://graph.facebook.com/v22.0/${pageId}?fields=name,picture&access_token=${accessToken}`;
+      const followersUrl = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_daily_follows_unique&period=days_28&access_token=${accessToken}`;
+      const postRemain = `https://graph.facebook.com/v22.0/${pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=days_28&access_token=${accessToken}`;
+      const categoryAndStatusPage = `https://graph.facebook.com/v22.0/${pageId}?fields=category%2Cis_published&access_token=${accessToken}`
+
+      const [nameImageRes,followersRes, postRemainRes, categoryAndStatusRes] = await Promise.all([
+        fetch(nameAndImage),
+        fetch(followersUrl),
+        fetch(postRemain),
+        fetch(categoryAndStatusPage)
+      ]);
+
+      const nameAndImageData = await nameImageRes.json();
+      const followersData = await followersRes.json();
+      const postRemainData = await postRemainRes.json();
+      const categoryAndStatusData = await categoryAndStatusRes.json();
+      // console.log("test "+JSON.stringify(followersData));
+
+      if (!followersRes.ok || !postRemainRes || !nameImageRes || !categoryAndStatusRes) {
+        return new Response(JSON.stringify({
+          error: "some error happened with fetch graph api"
+        }), { status: 400 });
       }
 
-    } else {
-      console.log("Error happened: " + errorOutScope);
-    }
+      /**
+       *  xu ly data response qua class FacebookGraphAdapter
+       *  => de sau nay khi graph api update version moi (response bi thay doi) thi chi can update trong class FacebookGraphAdapter
+       */
+      const firstPageInfo: FacebookPageNameAndImage = FacebookGraphAdapter.transformNameAndImage(nameAndImageData);
+      const secondPageInfo: FacebookFollowers = FacebookGraphAdapter.transformFollowers(followersData);
+      const thirdPageInfo: FacebookInsights = FacebookGraphAdapter.transformPostRemain(postRemainData);
+      const fourthPageInfo: FacebookPageCategoryStatus = FacebookGraphAdapter.transformCategoryAndStatusPage(categoryAndStatusData);
+      // console.log("page info: " + JSON.stringify(thirdPageInfo));
+      // process.exit();
+
+      // tong so tiep can (page_impressions_unique), tuong tac(page_post_engagements => bi trung, 1 user co the tuong tac nhieu lan )
+      interface PostRemainItem {
+        name: string;
+        values: { value: number }[];
+      }
+      // metrics là object: key: string, value: number
+      const metrics: Record<string, number> = {};
+      postRemainData.data.map((item:PostRemainItem) => {
+        metrics[item.name] = item.values[1].value;
+      });
+      // console.log(metrics);
+
+      const {data: myData, error: errorOutScope} = await supabase
+          .from("facebook_connections")
+          .select("id")
+          .eq("page_id", pageId)
 
 
+      if (myData && myData.length > 0) {
+        const resConnectionId = myData[0].id;
+        try {
+          // Kiểm tra row trùng tất cả cột
+          const { data: existingData, error: existingError } = await supabase
+              .from("facebook_page_insights")
+              .select("*")
+              .eq("posts", postsCount)
+              .eq("approach", thirdPageInfo.impressions)
+              .eq("interactions", thirdPageInfo.engagements)
+              .eq("follows", secondPageInfo.followersCount)
+              .eq("connection_id", resConnectionId)
+              .eq("name", firstPageInfo.name)
+              .eq("category", fourthPageInfo.category)
+
+          if (existingError) {
+            return new Response(JSON.stringify({ error: existingError.message }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
+          } else if (existingData && existingData.length > 0) {
+            return new Response(
+                JSON.stringify({ message: "Row đã tồn tại (trùng tất cả cột), không insert." }),
+                { status: 200, headers: { "Content-Type": "application/json" } }
+            );
+          } else {
+            const { data: dataInserted, error } = await supabase
+                .from("facebook_page_insights")
+                .insert({
+                  name: firstPageInfo.name,
+                  image_url: firstPageInfo.pictureUrl,
+                  posts: postsCount,
+                  approach: thirdPageInfo.impressions,
+                  interactions: thirdPageInfo.engagements,
+                  follows: secondPageInfo.followersCount,
+                  connection_id: resConnectionId,
+                  category: fourthPageInfo.category,
+                  status: fourthPageInfo.isPublished
+                })
+                .select();
+            if (error) {
+              console.error("Insert error:", error);
+            } else {
+              console.log("Insert success. Data:", dataInserted);
+              dataOutput = dataInserted;
+            }
+          }
+        } catch (error) {
+          console.error("Catch error:", error);
+        }
+
+      } else {
+        console.log("Error happened: " + errorOutScope);
+      }
+    })
     /**
      * responses
      */
     return new Response(JSON.stringify({
       data: dataOutput
     }), {
-      headers: { "Content-Type": "application/json" },
+      headers: {...corsHeaders,"Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {

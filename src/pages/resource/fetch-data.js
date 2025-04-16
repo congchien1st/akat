@@ -7,6 +7,14 @@ export async function fetchDataGraphApi() {
          */
         const {data, error} = await supabase.auth.getSession();
 
+        const responseFirst = await fetch('https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/fetch-graph-and-save-database', {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${data.session.access_token}`
+            }
+        });
+
         // http://127.0.0.1:54321/functions/v1/get-pages-data
         // https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/get-pages-data
         const response = await fetch('https://pmybhyeyienzwgthbfkh.supabase.co/functions/v1/get-pages-data', {

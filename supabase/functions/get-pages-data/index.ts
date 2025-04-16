@@ -81,16 +81,29 @@ Deno.serve(async (req) => {
       /**
        * lay data insights cua tung pages
        */
-      const { data: dataSelected, error } = await supabase
+      const { data:dataSelected, error } = await supabase
           .from("facebook_page_insights")
           .select("*")
-          .in("connection_id", filterConnection);
-      if(error) {
-        console.log("Error happened: " + error.message);
-      } else {
-        // console.log("data selected: " + JSON.stringify(dataSelected));
-        data = dataSelected;
+          .in("connection_id", filterConnection)
+          .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Lỗi Supabase:", error);
       }
+
+    // Lọc bản ghi mới nhất cho mỗi connection_id (trên JS)
+      const latestPerConnection: any[] = [];
+      const seen = new Set();
+
+      for (const row of dataSelected || []) {
+        if (!seen.has(row.connection_id)) {
+          seen.add(row.connection_id);
+          latestPerConnection.push(row);
+        }
+      }
+      data = latestPerConnection
+
+
     } catch (e) {
       console.log(e);
     }
