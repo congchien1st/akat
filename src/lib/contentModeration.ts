@@ -92,7 +92,7 @@ export async function getFacebookPages(
     }
 
     const { data, error, count } = await query
-        .range((page - 1) * limit, page * limit - 1);
+        .range((page - 5) * limit, page * limit - 5);
 
     if (error) throw error;
 
@@ -218,71 +218,80 @@ export async function updateModerationPrompt(prompt: string): Promise<Moderation
   }
 }
 
-// Get moderated posts with pagination
+// Lấy bài viết đã kiểm duyệt với phân trang
 export async function getModeratedPosts(
-    status?: 'pending' | 'approved' | 'violated',
-    page: number = 1,
-    limit: number = 20,
-    search?: string
+  status?: 'pending' | 'approved' | 'violated' | 'edited' | 'deleted',
+  page: number = 1,
+  limit: number = 20,
+  search?: string,
+  pageId?: string
 ): Promise<PaginatedResponse<FacebookPost>> {
   try {
-    let query = supabase.from('facebook_posts').select(`
-      *,
-      facebook_connections!inner (
-        facebook_page_details (
-          page_name,
-          page_avatar_url
-        )
-      )
-    `, { count: 'exact' });
+    // Bước 1: Lấy danh sách trang người dùng có quyền
+    const pageDetails = await getUserFacebookPages();
+    
+    const pageMap = (pageDetails || []).reduce((acc: Record<string, { page_name: string; page_avatar_url: string }>, page: any) => {
+      acc[page.pageId] = {
+        page_name: page.pageName,
+        page_avatar_url: page.avatarUrl
+      };
+      return acc;
+    }, {} as Record<string, { page_name: string; page_avatar_url: string }>);
 
-    if (status) {
-      query = query.eq('status', status);
+    const pageIds = Object.keys(pageMap);
+    if (pageIds.length === 0 && !pageId) {
+      return {
+        data: [],
+        pagination: { page, limit, total: 0, pages: 0 }
+      };
     }
 
-    if (search) {
-      query = query.ilike('message', `%${search}%`);
+    // Bước 2: Xây dựng query lấy bài viết
+    let query = supabase
+      .from('facebook_posts')
+      .select('*', { count: 'exact' });
+
+    // Sửa cách truy vấn để tránh lỗi với toán tử OR và IN
+    if (pageId) {
+      query = query.eq('page_id', pageId);
+    } else if (pageIds.length > 0) {
+      query = query.in('page_id', pageIds);
     }
 
-    // Add pagination
-    query = query
-        .order('created_time', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1);
+    if (status) query = query.eq('status', status);
+    if (search) query = query.ilike('message', `%${search}%`);
 
-    const { data, error, count } = await query;
+    const offset = (page - 1) * limit;
 
-    if (error) {
-      throw error;
-    }
+    const { data: posts, error: postError, count } = await query
+      .order('created_time', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Transform data to include page details
-    const transformedData = data?.map(post => ({
+    if (postError) throw postError;
+
+    // Bước 3: Gắn thông tin page vào bài viết
+    const transformedData = (posts || []).map(post => ({
       ...post,
-      page_name: post.facebook_connections?.facebook_page_details?.[0]?.page_name,
-      page_avatar_url: post.facebook_connections?.facebook_page_details?.[0]?.page_avatar_url
-    })) || [];
+      page_name: pageMap[post.page_id]?.page_name || 'Không rõ tên trang',
+      page_avatar_url: pageMap[post.page_id]?.page_avatar_url || ''
+    }));
 
+    // Bước 4: Trả kết quả phân trang
     return {
       data: transformedData,
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         total: count || 0,
         pages: Math.ceil((count || 0) / limit)
       }
     };
-  } catch (error) {
-    console.error('Error fetching moderated posts:', error);
 
-    // Return empty data if error
+  } catch (error) {
+    console.error('Lỗi khi lấy bài viết đã kiểm duyệt:', error);
     return {
       data: [],
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: 0,
-        pages: 0
-      }
+      pagination: { page, limit, total: 0, pages: 0 }
     };
   }
 }

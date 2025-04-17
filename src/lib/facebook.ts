@@ -1,4 +1,5 @@
 import { useAuthStore } from '../store/authStore';
+import { FacebookPost } from './contentModeration';
 import { supabase } from './supabase';
 import axios from 'axios';
 
@@ -376,4 +377,33 @@ export async function refreshPageConnection(pageId: string, accessToken: string)
     console.error('Error refreshing page connection:', error);
     throw error;
   }
+}
+// Get Facebook Post
+export async function getFacebookPost(pageId: string, accessToken: string): Promise<FacebookPost[]> {
+  return new Promise((resolve, reject) => {
+    console.log('Fetching posts for pageId:', pageId, 'with accessToken:', accessToken);
+    FB.api(
+      `/${pageId}/posts`,
+      { access_token: accessToken },
+      (response) => {
+        console.log('Facebook API response:', response); // Log response từ Facebook API
+        if (!response || response.error) {
+          console.error('Error fetching posts:', response?.error);
+          reject(new Error(response?.error?.message || 'Failed to get posts'));
+          return;
+        }
+        const posts: FacebookPost[] = (response.data || []).map((post: any) => ({
+          id: post.id,
+          post_id: post.id,
+          page_id: pageId,
+          message: post.message || '',
+          created_time: post.created_time,
+          status: 'approved',
+          moderation_result: undefined,
+        }));
+
+        resolve(posts);
+      }
+    );
+  });
 }

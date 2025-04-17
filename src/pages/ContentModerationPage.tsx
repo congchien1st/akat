@@ -86,7 +86,7 @@ function ContentModerationPage() {
 
   useEffect(() => {
     fetchPosts();
-  }, [currentStatus, page]);
+  }, [currentStatus, page, selectedPage]);
 
   useEffect(() => {
     if (selectedPage) {
@@ -126,19 +126,29 @@ function ContentModerationPage() {
     }
   };
 
-  const fetchPosts = async () => {
-    try {
-      setLoadingPosts(true);
-      const status = currentStatus === 'all' ? undefined : currentStatus;
-      const response = await getModeratedPosts(status, page, 10);
-      setPosts(response.data);
-      setTotalPages(response.pagination.pages);
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
+const fetchPosts = async () => {
+  try {
+    setLoadingPosts(true);
+    const status = currentStatus === 'all' ? undefined : currentStatus;
+
+    // Thêm điều kiện lọc theo selectedPage
+    const response = await getModeratedPosts(
+      status, 
+      page, 
+      10, 
+      undefined, 
+      selectedPage || undefined
+    );
+
+    setPosts(response.data);
+    setTotalPages(response.pagination.pages);
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+  } finally {
+    setLoadingPosts(false);
+  }
+};
+
 
   const togglePageMonitoring = async (pageId: string) => {
     const targetPage = pages.find((page) => page.id === pageId);
@@ -302,13 +312,15 @@ function ContentModerationPage() {
               <div className="space-y-4">
                 {pages.map((page) => (
                     <div
-                        key={page.id}
-                        onClick={() => setSelectedPage(page.id)}
-                        className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${
-                            selectedPage === page.id
-                                ? 'bg-blue-50 border-blue-200'
-                                : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
+                    key={page.id}
+                    onClick={() => {
+                      setSelectedPage(selectedPage === page.id ? null : page.id);
+                    }}
+                    className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${
+                      selectedPage === page.id
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-white border-gray-200 hover:bg-gray-50'
+                    }`}
                     >
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
