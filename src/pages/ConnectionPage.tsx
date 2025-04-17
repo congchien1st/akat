@@ -166,6 +166,7 @@ function ConnectionPage() {
   const [showConnectedPages, setShowConnectedPages] = useState(false);
   const [currentGuide, setCurrentGuide] = useState<string>('default');
 
+  // dem so luong page facebook da ket noi
   useEffect(() => {
     fetchConnectedPagesCount();
   }, [refreshKey]);
@@ -300,6 +301,7 @@ function ConnectionPage() {
     }
   ];
 
+  // chay migration tao bang fb_connection, fb_page_details, policy RLS
   useEffect(() => {
     const runMigrations = async () => {
       try {
@@ -330,11 +332,17 @@ function ConnectionPage() {
 
   const toggleSection = (sectionId: string) => {
     setExpandedSection(expandedSection === sectionId ? null : sectionId);
+    // console.log("expandedSection: " + expandedSection);
     setShowConnectForm(null);
+    // console.log("showConnectForm: " + showConnectForm);
     setCurrentGuide(sectionId);
+    // console.log("currentGuide: " + currentGuide);
     setShowConnectedPages(false);
+    // console.log("showConnectedPages: " + showConnectedPages);
+
   };
 
+  // section huong dan ben phai
   const renderGuide = (guideId: string) => {
     const guide = guides[guideId];
     if (!guide) return null;
@@ -400,6 +408,7 @@ function ConnectionPage() {
     );
   };
 
+  // icon loading page khi vao trang
   if (migrationRunning) {
     return (
         <div className="p-4 sm:p-8 flex flex-col items-center justify-center min-h-[50vh]">
@@ -409,6 +418,72 @@ function ConnectionPage() {
         </div>
     );
   }
+
+  /**
+   *  Hiển thị nội dung của Facebook Section
+   */
+  const renderFacebookSection = () => {
+    // Trường hợp đang hiển thị form kết nối
+    if (showConnectForm === 'facebook') {
+      return <FacebookConnect onConnect={handleConnectSuccess} />;
+    }
+
+    // Trường hợp đang hiển thị danh sách trang đã kết nối
+    if (showConnectedPages) {
+      return <ConnectedPages key={refreshKey} />;
+    }
+
+    // Trường hợp mặc định - hiển thị các nút tùy chọn
+    return (
+        <div className="space-y-4 pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Nút Quản lý kết nối */}
+            <button
+                onClick={() => {
+                  setShowConnectedPages(true);
+                  setCurrentGuide('facebook-manage');
+                }}
+                className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl hover:from-blue-100 hover:to-blue-200/50 transition-all duration-200"
+            >
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Settings className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-medium">Quản lý kết nối</h3>
+                <p className="text-sm text-gray-600">Quản lý các Facebook Pages đã kết nối</p>
+              </div>
+            </button>
+
+            {/* Nút Thêm kết nối mới */}
+            <button
+                onClick={() => {
+                  setShowConnectForm('facebook');
+                  setCurrentGuide('facebook-new');
+                }}
+                className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl hover:from-blue-100 hover:to-blue-200/50 transition-all duration-200"
+            >
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="relative">
+                  <Facebook className="w-5 h-5 text-blue-600" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-xs font-bold">+</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-left">
+                <h3 className="font-medium">Thêm kết nối mới</h3>
+                <p className="text-sm text-gray-600">Kết nối thêm Facebook Page</p>
+              </div>
+            </button>
+          </div>
+        </div>
+    );
+  };
+
+  // Hiển thị nội dung của các section khác
+  const renderOtherSection = () => {
+    return <section.component onConnect={handleConnectSuccess} />;
+  };
 
   return (
       <div className="p-4 sm:p-8 max-w-[1600px] mx-auto">
@@ -439,6 +514,7 @@ function ConnectionPage() {
                                 <p className="text-xs text-gray-600">{section.description}</p>
                               </div>
                             </div>
+                            {/*mui ten icon*/}
                             <ChevronDown
                                 className={`w-4 h-4 text-gray-400 transition-transform ${
                                     expandedSection === section.id ? 'rotate-180' : ''
@@ -446,61 +522,14 @@ function ConnectionPage() {
                             />
                           </button>
 
+                          {/*HERE*/}
                           {expandedSection === section.id && (
                               <div className="px-4 pb-4">
-                                {section.id === 'facebook' ? (
-                                    showConnectForm === section.id ? (
-                                        <FacebookConnect onConnect={handleConnectSuccess} />
-                                    ) : showConnectedPages ? (
-                                        <ConnectedPages key={refreshKey} />
-                                    ) : (
-                                        <div className="space-y-4 pt-3">
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <button
-                                                onClick={() => {
-                                                  setShowConnectedPages(true);
-                                                  setCurrentGuide('facebook-manage');
-                                                }}
-                                                className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl hover:from-blue-100 hover:to-blue-200/50 transition-all duration-200"
-                                            >
-                                              <div className="p-2 bg-blue-100 rounded-lg">
-                                                <Settings className="w-5 h-5 text-blue-600" />
-                                              </div>
-                                              <div className="text-left">
-                                                <h3 className="font-medium">Quản lý kết nối</h3>
-                                                <p className="text-sm text-gray-600">Quản lý các Facebook Pages đã kết nối</p>
-                                              </div>
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                  setShowConnectForm(section.id);
-                                                  setCurrentGuide('facebook-new');
-                                                }}
-                                                className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl hover:from-blue-100 hover:to-blue-200/50 transition-all duration-200"
-                                            >
-                                              <div className="p-2 bg-blue-100 rounded-lg">
-                                                <div className="relative">
-                                                  <Facebook className="w-5 h-5 text-blue-600" />
-                                                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-100 rounded-full flex items-center justify-center">
-                                                    <span className="text-blue-600 text-xs font-bold">+</span>
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              <div className="text-left">
-                                                <h3 className="font-medium">Thêm kết nối mới</h3>
-                                                <p className="text-sm text-gray-600">Kết nối thêm Facebook Page</p>
-                                              </div>
-                                            </button>
-                                          </div>
-                                        </div>
-                                    )
-                                ) : showConnectForm === section.id ? (
-                                    <section.component onConnect={handleConnectSuccess} />
-                                ) : (
-                                    <section.component onConnect={handleConnectSuccess} />
-                                )}
+                                {section.id === 'facebook' ? renderFacebookSection() : renderOtherSection()}
                               </div>
                           )}
+
+
                         </div>
                     ))
                 }
@@ -576,6 +605,7 @@ function ConnectionPage() {
           </div>
 
           {/* Guide Section - Hidden on mobile, shown on desktop */}
+          {/*section huong dan*/}
           <div className="hidden lg:block lg:col-span-5 space-y-4">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
               <h2 className="text-lg font-semibold mb-4">Hướng dẫn</h2>
