@@ -1,6 +1,17 @@
 import { useAuthStore } from '../store/authStore';
 import { supabase } from './supabase';
 import axios from 'axios';
+// import { getCurrentBaseUrl } from '../pages/resource/fetch-data.js';
+
+function getCurrentBaseUrl() {
+    if (typeof window !== "undefined") {
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        return isLocal ? "http://127.0.0.1:54321" : "https://pmybhyeyienzwgthbfkh.supabase.co";
+    } else {
+        // fallback nếu chạy trong SSR hoặc Deno (không phải browser)
+        return "https://pmybhyeyienzwgthbfkh.supabase.co";
+    }
+}
 
 export interface FacebookPage {
   id: string;
@@ -215,7 +226,7 @@ export async function getFacebookPageInfo(pageId: string, accessToken: string): 
 // Connect Facebook Page
 export async function connectFacebookPage(page: FacebookPage) {
   try {
-    console.log('Connecting Facebook page:', page.name);
+    // console.log('Connecting Facebook page:', page.name);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -224,11 +235,11 @@ export async function connectFacebookPage(page: FacebookPage) {
 
     // First exchange the user token for a long-lived user token
     const longLivedUserToken = await exchangeForLongLivedToken(page.access_token);
-    console.log('Obtained long-lived user token');
+    // console.log('Obtained long-lived user token');
 
     // Then get a long-lived page token using the long-lived user token
     const longLivedPageToken = await getLongLivedPageToken(page.id, longLivedUserToken);
-    console.log('Obtained long-lived page token');
+    // console.log('Obtained long-lived page token');
 
     // Check if page is already connected
     const { data: existingConnection } = await supabase
@@ -239,6 +250,7 @@ export async function connectFacebookPage(page: FacebookPage) {
         .single();
 
     if (existingConnection) {
+        // console.log("existingConnection " + JSON.stringify(existingConnection))
       // Update existing connection
       await supabase
           .from('facebook_connections')
@@ -248,6 +260,11 @@ export async function connectFacebookPage(page: FacebookPage) {
             last_sync: new Date().toISOString()
           })
           .eq('id', existingConnection.id);
+
+    await supabase
+        .from('facebook_page_insights')
+        .update({status: 'Hoạt động'})
+        .eq('connection_id', existingConnection.id);
     } else {
       // Create new connection
       const { data: connection } = await supabase
@@ -276,6 +293,17 @@ export async function connectFacebookPage(page: FacebookPage) {
               page_type: page.page_type
             });
       }
+
+      console.log("longLivedUserToken: " + longLivedUserToken);
+        const baseUrl = getCurrentBaseUrl();
+        const url = baseUrl + "/functions/v1/fetch-graph-and-save-database";
+        await fetch(`${url}`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlM2SVdWSGdteEhRODFOUWsiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3BteWJoeWV5aWVuendndGhiZmtoLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJlNWJmODA4OC0yZTU0LTQ1MmMtODZjNi1lMjRkZTEyM2U1YTciLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQ1MDU4NDk5LCJpYXQiOjE3NDUwNTQ4OTksImVtYWlsIjoidGVzdDEyMzRAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InRlc3QxMjM0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaG9uZV9udW1iZXIiOiIwMzU0NDQzMzIyIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiJlNWJmODA4OC0yZTU0LTQ1MmMtODZjNi1lMjRkZTEyM2U1YTcifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc0NTAzMDE1OH1dLCJzZXNzaW9uX2lkIjoiNjMxZTU5NjAtNzgxNi00YWI5LWIyNDQtMzVjYWFiZjIyYTVhIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.ABDOZ0pye2d3AmfOsEfFPmEr2PV0MxseTFb8_9SarHM`
+            }
+        });
     }
 
     return { success: true };
@@ -286,7 +314,7 @@ export async function connectFacebookPage(page: FacebookPage) {
 }
 
 // Disconnect Facebook Page
-export async function disconnectFacebookPage(pageId: string) {
+export async function disconnectFacebookPage(pageId: string, connectionId: string) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -303,9 +331,17 @@ export async function disconnectFacebookPage(pageId: string) {
         .eq('page_id', pageId)
         .eq('user_id', user.id);
 
-    if (error) {
-      throw error;
-    }
+    const { error: errorConnectionId } = await supabase
+      .from('facebook_page_insights')
+      .update({ status: 'Không hoạt động' })
+        .eq('connection_id', connectionId)
+        .eq('user_id', user.id);
+
+      if (errorConnectionId) {
+          console.error('Lỗi cập nhật trạng thái:', errorConnectionId);
+      } else {
+          console.log('Cập nhật trạng thái thành công');
+      }
 
     return { success: true };
   } catch (error) {

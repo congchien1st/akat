@@ -82,7 +82,7 @@ function ConnectedPages() {
       setLoading(true);
       setError(null);
 
-      console.log('Fetching connected pages...');
+      // console.log('Fetching connected pages...');
 
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -102,7 +102,7 @@ function ConnectedPages() {
         throw new Error('Failed to fetch Facebook pages');
       }
 
-      console.log('Connections data:', connections);
+      // console.log('Connections data:', connections);
 
       if (!connections || connections.length === 0) {
         setPages([]);
@@ -140,7 +140,7 @@ function ConnectedPages() {
         }
       }
 
-      console.log('Formatted pages:', formattedPages);
+      // console.log('Formatted pages:', formattedPages);
       setPages(formattedPages);
 
     } catch (err) {
@@ -153,10 +153,12 @@ function ConnectedPages() {
 
   const handleDisconnect = async (page: ConnectedPage) => {
     try {
+      // console.log("TEST HERE:" + page);
       setActionInProgress(page.page_id);
       setError(null);
 
-      await disconnectFacebookPage(page.page_id);
+      console.log("MY PAGEEEEEE: " + JSON.stringify(page));
+      await disconnectFacebookPage(page.page_id, page.id);
       setPageToDelete(null);
       await fetchPages();
     } catch (err) {
@@ -167,25 +169,25 @@ function ConnectedPages() {
     }
   };
 
-  const handleRefresh = async (page: ConnectedPage) => {
-    if (!page.access_token) {
-      setError('No access token available for this page');
-      return;
-    }
-
-    try {
-      setActionInProgress(page.page_id);
-      setError(null);
-
-      await refreshPageConnection(page.page_id, page.access_token);
-      await fetchPages();
-    } catch (err) {
-      console.error('Refresh error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to refresh connection');
-    } finally {
-      setActionInProgress(null);
-    }
-  };
+  // const handleRefresh = async (page: ConnectedPage) => {
+  //   if (!page.access_token) {
+  //     setError('No access token available for this page');
+  //     return;
+  //   }
+  //
+  //   try {
+  //     setActionInProgress(page.page_id);
+  //     setError(null);
+  //
+  //     await refreshPageConnection(page.page_id, page.access_token);
+  //     await fetchPages();
+  //   } catch (err) {
+  //     console.error('Refresh error:', err);
+  //     setError(err instanceof Error ? err.message : 'Failed to refresh connection');
+  //   } finally {
+  //     setActionInProgress(null);
+  //   }
+  // };
 
   if (loading) {
     return (

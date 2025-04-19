@@ -40,43 +40,44 @@ Deno.serve(async (req) => {
       const { data: { user } } = await supabase.auth.getUser(token);
       // console.log('MY USER: ', user);
 
-      const { data: dataUser, error: errorUser } = await supabase
-          .from('facebook_connections')
-          .select(`
-            id,
-            user_id,
-            page_id,
-            access_token,
-            status,
-            facebook_page_details (
-              page_name,
-              page_category,
-              page_avatar_url,
-              page_url
-            )
-          `)
-          .eq('user_id', user.id);
+      // const { data: dataUser, error: errorUser } = await supabase
+      //     .from('facebook_connections')
+      //     .select(`
+      //       id,
+      //       user_id,
+      //       page_id,
+      //       access_token,
+      //       status,
+      //       facebook_page_details (
+      //         page_name,
+      //         page_category,
+      //         page_avatar_url,
+      //         page_url
+      //       )
+      //     `)
+      //     .eq('user_id', user.id)
+      //     .eq('status', 'connected')
       // console.log("HERE " + JSON.stringify(dataUser));
 
-      interface FacebookConnectionItem {
-        id: string;
-        user_id: string;
-        page_id: string;
-        page_name?: string;
-        page_category?: string;
-        page_avatar_url?: string;
-        page_url?: string;
-        permissions?: string;
-        page_manage_posts?: boolean;
-        page_manage_engagement?: boolean;
-        page_manage_ads?: boolean;
-        status?: string;
-      }
-      const filterConnection = dataUser.map((item:FacebookConnectionItem) => item.id);
-
-      if (errorUser) {
-        console.error("error: " + errorUser);
-      }
+      // interface FacebookConnectionItem {
+      //   id: string;
+      //   user_id: string;
+      //   page_id: string;
+      //   page_name?: string;
+      //   page_category?: string;
+      //   page_avatar_url?: string;
+      //   page_url?: string;
+      //   permissions?: string;
+      //   page_manage_posts?: boolean;
+      //   page_manage_engagement?: boolean;
+      //   page_manage_ads?: boolean;
+      //   status?: string;
+      // }
+      // const filterConnection = dataUser.map((item:FacebookConnectionItem) => item.id);
+      //
+      // if (errorUser) {
+      //   console.error("error: " + errorUser);
+      // }
 
       /**
        * lay data insights cua tung pages
@@ -84,9 +85,12 @@ Deno.serve(async (req) => {
       const { data:dataSelected, error } = await supabase
           .from("facebook_page_insights")
           .select("*")
-          .in("connection_id", filterConnection)
+          // .in("connection_id", filterConnection)
+          .eq('user_id', user.id)
+          .eq('status', 'Hoạt động')
           .order("created_at", { ascending: false });
 
+      // console.log("data selected", JSON.stringify(dataSelected));
       if (error) {
         console.error("Lỗi Supabase:", error);
       }
