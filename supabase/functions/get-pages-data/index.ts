@@ -2,28 +2,27 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
+  const allowedOrigins = [
+    "https://localhost:3000",
+    "http://localhost:3000",
+    "https://platform.omegaa.cloud"
+  ];
+  const origin = req.headers.get("origin") ?? "";
+
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "*",
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    'Content-Type': 'application/json',
+  }
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  console.log("Request origin:", origin);
+  console.log("CORS headers being sent:", corsHeaders);
   try {
-    /**
-     * cho phep truy cap CORS o browser den api /get-pages-data
-     *
-     * Access-Control-Allow-Origin => cho phep target page (https://localhost:3000 va https://platform.omegaa.cloud/) call api /get-pages-data
-     */
-    const allowedOrigins = ["https://localhost:3000", "https://platform.omegaa.cloud"];
-    const origin = req.headers.get("origin") ?? "";
-
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "",
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      'Content-Type': 'application/json',
-    }
-
-
-
-    if (req.method === 'OPTIONS') {
-      return new Response('ok', { headers: corsHeaders })
-    }
-
     const supabaseUrl = Deno.env.get("VITE_SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("VITE_SUPABASE_SERVICE_ROL_KEY");
     if (!supabaseUrl || !supabaseAnonKey) {

@@ -32,11 +32,11 @@ function FacebookConnect({ onConnect }: FacebookConnectProps) {
 
       // Exchange for long-lived user token
       const longLivedToken = await exchangeForLongLivedToken(authResponse.accessToken);
-      console.log('Obtained long-lived user token');
+      // console.log('Obtained long-lived user token');
 
       // Get pages
       const pages = await getFacebookPages(longLivedToken);
-      console.log(`Found ${pages.length} pages to connect`);
+      // console.log(`Found ${pages.length} pages to connect`);
 
       // Connect all pages
       await Promise.all(pages.map(page => {

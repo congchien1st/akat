@@ -4,29 +4,35 @@ import { FacebookPageNameAndImage,FacebookFollowers,FacebookInsights,FacebookPag
 import FacebookGraphAdapter from "./FacebookGraphAdapter.ts";
 
 Deno.serve(async (req) => {
-  try {
-    // body request POST
-    // const { pageId } = await req.json();
-    // if (!pageId) {
-    //   return new Response(
-    //       JSON.stringify({ error: "Missing page_id" }),
-    //       { status: 400 }
-    //   );
-    // }
-
-    // const allowedOrigins = ["https://localhost:3000", "https://platform.omegaa.cloud"];
-    // const origin = req.headers.get("origin") ?? "";
+    const allowedOrigins = [
+        "https://localhost:3000",
+        "http://localhost:3000",
+        "https://platform.omegaa.cloud"
+    ];
+    const origin = req.headers.get("origin") ?? "";
 
     const corsHeaders = {
-      "Access-Control-Allow-Origin": '*',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      'Content-Type': 'application/json',
+        "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "*",
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        'Content-Type': 'application/json',
     }
 
     if (req.method === 'OPTIONS') {
-      return new Response('ok', { headers: corsHeaders })
+        return new Response('ok', { headers: corsHeaders })
     }
+
+    console.log("Request origin:", origin);
+    console.log("CORS headers being sent:", corsHeaders);
+    try {
+      // body request POST
+      const { connectionId } = await req.json();
+      if (!connectionId) {
+          return new Response(
+              JSON.stringify({ error: "Missing connection id" }),
+              { status: 400 }
+          );
+      }
 
     const supabaseUrl = Deno.env.get("VITE_SUPABASE_URL");
     const supabaseRoleKey = Deno.env.get("VITE_SUPABASE_SERVICE_ROL_KEY");
@@ -41,8 +47,8 @@ Deno.serve(async (req) => {
     const {data: pageData} = await supabase
         .from("facebook_connections")
         .select(`id, page_id, access_token`)
-        .eq("user_id", user.id)
-        .eq("status", "connected")
+        .eq("id", connectionId)
+
 
     // console.log("page data: " + JSON.stringify(pageData));
     // return;
@@ -164,7 +170,9 @@ Deno.serve(async (req) => {
                 })
                 .select();
             if (error) {
-              console.error("Insert error:", error);
+                return new Response(JSON.stringify({
+                    error: "some error happened with fetch graph api"
+                }), { status: 400, headers: corsHeaders });
             } else {
               console.log("Insert success. Data:", dataInserted);
               // dataOutput = dataInserted;
@@ -184,18 +192,16 @@ Deno.serve(async (req) => {
     /**
      * responses
      */
-    return new Response(JSON.stringify({
-      data: results
-    }), {
-      headers: {...corsHeaders,"Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+        JSON.stringify({data: results}),
+        {headers: {...corsHeaders,"Content-Type": "application/json" }, status: 200}
+    );
   } catch (error) {
     if (error instanceof Error) {
-      return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500 },
-      );
+        return new Response(
+            JSON.stringify({ error: error.message }),
+            { status: 500, headers: corsHeaders },
+        );
     } else {
       // Nếu không phải Error, ta có thể xử lý theo cách khác
       return new Response(
