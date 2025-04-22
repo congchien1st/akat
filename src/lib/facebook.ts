@@ -101,8 +101,12 @@ export async function exchangeForLongLivedToken(
     shortLivedToken: string,
 ): Promise<string> {
     try {
-        console.log("Exchanging short-lived token for long-lived token...");
-
+        /**
+         * truy cập biến môi trường
+         * + trong frontend bằng Vite => import.meta.env.VITE_MY_ENV_VAR
+         * + trong BE => process.env.MY_ENV_VAR
+         * Các biến phải bắt đầu bằng VITE_ thì mới được expose ra frontend.
+         */
         const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
         const appSecret = import.meta.env.VITE_FACEBOOK_APP_SECRET;
 
@@ -112,7 +116,7 @@ export async function exchangeForLongLivedToken(
 
         // Make the API call to exchange the token
         const response = await axios.get(
-            `https://graph.facebook.com/v19.0/oauth/access_token`,
+            `https://graph.facebook.com/v22.0/oauth/access_token`,
             {
                 params: {
                     grant_type: "fb_exchange_token",
@@ -124,12 +128,6 @@ export async function exchangeForLongLivedToken(
         );
 
         if (response.data && response.data.access_token) {
-            console.log("Successfully obtained long-lived token");
-            console.log(
-                "Token expires in:",
-                response.data.expires_in,
-                "seconds (approximately 60 days)",
-            );
             return response.data.access_token;
         } else {
             throw new Error("Failed to obtain long-lived token");
@@ -146,13 +144,8 @@ export async function getLongLivedPageToken(
     userAccessToken: string,
 ): Promise<string> {
     try {
-        console.log(
-            `Getting page token for page ${pageId} using long-lived user token...`,
-        );
-
-        // First get the page access token
         const response = await axios.get(
-            `https://graph.facebook.com/v19.0/${pageId}`,
+            `https://graph.facebook.com/v22.0/${pageId}`,
             {
                 params: {
                     fields: "access_token",
@@ -162,10 +155,6 @@ export async function getLongLivedPageToken(
         );
 
         if (response.data && response.data.access_token) {
-            console.log("Successfully obtained page token");
-
-            // Page tokens obtained with a long-lived user token are already long-lived
-            // They don't need to be exchanged again
             return response.data.access_token;
         } else {
             throw new Error("Failed to obtain page token");
@@ -182,7 +171,7 @@ export async function getFacebookPages(
 ): Promise<FacebookPage[]> {
     return new Promise((resolve, reject) => {
         FB.api(
-            "/me/accounts",
+            "me/accounts?fields=id,name,link,category,picture{url},is_published,verification_status,tasks",
             { access_token: accessToken },
             async (response) => {
                 if (!response || response.error) {
@@ -193,19 +182,24 @@ export async function getFacebookPages(
                     );
                     return;
                 }
+                // console.log("RESPONSE: " + JSON.stringify(response));
 
+                /**
+                 * is_published: Page có đang công khai (public) hay không
+                 * verification_status: Page đã được xác minh (blue tick) chưa
+                 * tasks: Vai trò/tác vụ của người dùng trên page
+                 */
                 const pages = response.data.map((page: any) => ({
                     id: page.id,
                     name: page.name,
-                    access_token: page.access_token,
-                    category: page.category || "Unknown",
-                    connected: false,
-                    avatar_url: page.picture?.data?.url,
-                    follower_count: page.followers_count || page.fan_count,
                     page_url: page.link,
-                    page_type: page.followers_count ? "new" : "classic",
+                    category: page.category || "Unknown",
+                    avatar_url: page.picture?.data?.url,
+                    connected: page.is_published,
+                    verification_status: page.verification_status,
+                    tasks: page.tasks
                 }));
-
+                // tra ve danh sach cac fanpages
                 resolve(pages);
             },
         );
@@ -255,8 +249,6 @@ export async function getFacebookPageInfo(
 // Connect Facebook Page
 export async function connectFacebookPage(page: FacebookPage) {
     try {
-        // console.log('Connecting Facebook page:', page.name);
-
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
             throw new Error("User not authenticated");
@@ -266,14 +258,12 @@ export async function connectFacebookPage(page: FacebookPage) {
         const longLivedUserToken = await exchangeForLongLivedToken(
             page.access_token,
         );
-        console.log("long user token: " + longLivedUserToken);
 
         // Then get a long-lived page token using the long-lived user token
         const longLivedPageToken = await getLongLivedPageToken(
             page.id,
             longLivedUserToken,
         );
-        // console.log('Obtained long-lived page token');
 
         // Check if page is already connected
         const { data: existingConnection } = await supabase
@@ -281,11 +271,9 @@ export async function connectFacebookPage(page: FacebookPage) {
             .select("*")
             .eq("page_id", page.id)
             .eq("user_id", user.id)
-            .single();
+            .single();  // chi tra ve 1 ban ghi duy nhat
 
         if (existingConnection) {
-            // console.log("existingConnection " + JSON.stringify(existingConnection))
-            // Update existing connection
             await supabase
                 .from("facebook_connections")
                 .update({
@@ -297,7 +285,7 @@ export async function connectFacebookPage(page: FacebookPage) {
 
             await supabase
                 .from("facebook_page_insights")
-                .update({ status: "Hoạt động" })
+                .update({ status: "connected" })
                 .eq("connection_id", existingConnection.id);
         } else {
             // Create new connection
@@ -309,11 +297,10 @@ export async function connectFacebookPage(page: FacebookPage) {
                     access_token: longLivedPageToken,
                     status: "connected",
                     permissions: REQUIRED_PERMISSIONS,
+                    last_sync: new Date().toISOString(),
                 })
                 .select()
                 .single();
-
-            console.log("connection id vua insert: " + connection.id);
 
             if (connection) {
                 // Add page details
@@ -324,25 +311,23 @@ export async function connectFacebookPage(page: FacebookPage) {
                         page_name: page.name,
                         page_category: page.category,
                         page_avatar_url: page.avatar_url,
-                        follower_count: page.follower_count,
                         page_url: page.page_url,
-                        page_type: page.page_type,
+                        page_id: page.id
+                        // page_type: page.page_type,
                     });
             }
 
-            // console.log("longLivedUserToken: " + longLivedUserToken);
 
             const {data: dataSession, error} = await supabase.auth.getSession();
             if (error || !dataSession.session) {
                 console.error("No session found", error);
                 return [];
             }
-            console.log("MY SESSION TOKEN: " + dataSession.session.access_token);
 
             const baseUrl = getCurrentBaseUrl();
             const url = baseUrl + "/functions/v1/fetch-graph-and-save-database";
 
-            const getUserToken = await fetch(`${url}`, {
+            await fetch(`${url}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -384,7 +369,7 @@ export async function disconnectFacebookPage(
 
         const { error: errorConnectionId } = await supabase
             .from("facebook_page_insights")
-            .update({ status: "Không hoạt động" })
+            .update({ status: "disconnected" })
             .eq("connection_id", connectionId)
             .eq("user_id", user.id);
 
@@ -407,18 +392,18 @@ export async function refreshPageConnection(
     accessToken: string,
 ): Promise<FacebookPage> {
     try {
-        console.log("Refreshing page connection for page ID:", pageId);
+        // console.log("Refreshing page connection for page ID:", pageId);
 
         // First exchange for a long-lived user token
         const longLivedUserToken = await exchangeForLongLivedToken(accessToken);
-        console.log("Obtained long-lived user token");
+        // console.log("Obtained long-lived user token");
 
         // Then get a long-lived page token
         const longLivedPageToken = await getLongLivedPageToken(
             pageId,
             longLivedUserToken,
         );
-        console.log("Obtained long-lived page token");
+        // console.log("Obtained long-lived page token");
 
         // Get updated page info using the long-lived token
         const pageInfo = await getFacebookPageInfo(pageId, longLivedPageToken);

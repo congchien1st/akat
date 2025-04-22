@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
           .select("*")
           // .in("connection_id", filterConnection)
           .eq('user_id', user.id)
-          .eq('status', 'Hoạt động')
+          .eq('status', 'connected')
           .order("created_at", { ascending: false });
 
       // console.log("data selected", JSON.stringify(dataSelected));

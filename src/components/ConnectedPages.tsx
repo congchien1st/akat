@@ -257,17 +257,7 @@ function ConnectedPages() {
                       {page.status === 'connected' ? 'Đang kết nối' : 'Đã ngắt kết nối'}
                     </span>
                           <span className="text-gray-400">•</span>
-                          <span className="text-gray-600">
-                      Cập nhật: {new Date(page.last_sync).toLocaleDateString()}
-                    </span>
-                          {page.follower_count && page.follower_count > 0 && (
-                              <>
-                                <span className="text-gray-400">•</span>
-                                <span className="text-gray-600">
-                          {page.follower_count.toLocaleString()} followers
-                        </span>
-                              </>
-                          )}
+                          <span className="text-gray-600">Cập nhật: {new Date(page.last_sync).toLocaleDateString('vi-VN')}</span>
                         </div>
                       </div>
                     </div>

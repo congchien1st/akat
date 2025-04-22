@@ -22,8 +22,8 @@ Deno.serve(async (req) => {
         return new Response('ok', { headers: corsHeaders })
     }
 
-    console.log("Request origin:", origin);
-    console.log("CORS headers being sent:", corsHeaders);
+    // console.log("Request origin:", origin);
+    // console.log("CORS headers being sent:", corsHeaders);
     try {
       // body request POST
       const { connectionId } = await req.json();
